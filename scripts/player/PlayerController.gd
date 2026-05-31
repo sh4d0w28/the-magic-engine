@@ -45,7 +45,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.is_action_pressed("camera_orbit"):
+	if event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_MIDDLE) != 0:
 		orbit_camera(event.relative)
 		get_viewport().set_input_as_handled()
 
