@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2_8gobr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DebugPanel.tscn" id="3_a24eb"]
 [ext_resource type="Script" path="res://scripts/input/InputController.gd" id="4_7yyh0"]
+[ext_resource type="Script" path="res://scripts/magic/SpellManager.gd" id="5_4a5sh"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(30, 1, 30)
@@ -37,6 +38,7 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
 
 [node name="SpellManager" type="Node" parent="."]
+script = ExtResource("5_4a5sh")
 
 [node name="ActiveSpells" type="Node3D" parent="SpellManager"]
 

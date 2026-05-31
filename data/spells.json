@@ -1,0 +1,31 @@
+{
+  "spells": [
+    {
+      "id": "spark",
+      "name": "Spark",
+      "incantation": "RAK",
+      "diagram": "circle",
+      "base_cost": 5,
+      "duration_seconds": 1
+    },
+    {
+      "id": "fireball",
+      "name": "Fireball",
+      "incantation": "RAK TOR",
+      "diagram": "triangle",
+      "base_cost": 25,
+      "speed": 12,
+      "range": 20
+    },
+    {
+      "id": "bonfire",
+      "name": "Bonfire",
+      "incantation": "RAK DUM",
+      "diagram": "circle_with_dot",
+      "base_cost": 15,
+      "fuel_search_radius": 3,
+      "fuel_consume_interval_seconds": 5,
+      "no_fuel_lifetime_seconds": 3
+    }
+  ]
+}
