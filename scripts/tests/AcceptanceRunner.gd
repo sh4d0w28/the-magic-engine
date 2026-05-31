@@ -39,6 +39,7 @@ func _run() -> void:
 	var energy_system: Node = player.get_node("EnergySystem")
 	var active_spells: Node3D = spell_manager.get_node("ActiveSpells")
 	var wood_piles: Node = world.get_node("Environment/WoodPiles")
+	var target_dummies: Node = world.get_node("Environment/TargetDummies")
 	var voice_power_tracker: Node = input_controller.get_node("VoicePowerTracker")
 	var diagram_recognizer: Node = input_controller.get_node("DiagramRecognizer")
 
@@ -142,6 +143,7 @@ func _run() -> void:
 	await process_frame
 
 	_assert(wood_piles.get_child_count() >= 1, "WoodPile exists")
+	_assert(target_dummies.get_child_count() >= 1, "TargetDummy exists")
 	var wood_before: float = wood_piles.get_child(0).fuel_amount
 	var bonfire_scene: PackedScene = load("res://scenes/effects/Bonfire.tscn")
 	var bonfire_near: Node3D = bonfire_scene.instantiate()
@@ -161,6 +163,21 @@ func _run() -> void:
 		bonfire_far._process(1.0)
 	_assert(not is_instance_valid(bonfire_far) or bonfire_far.is_queued_for_deletion(), "Bonfire without wood dies after 3 seconds")
 	await process_frame
+
+	var fireball_scene: PackedScene = load("res://scenes/effects/Fireball.tscn")
+	var target_dummy: StaticBody3D = target_dummies.get_child(0)
+	var hit_test_fireball: Node3D = fireball_scene.instantiate()
+	active_spells.add_child(hit_test_fireball)
+	hit_test_fireball.global_position = target_dummy.global_position + Vector3(0.0, 1.0, 4.0)
+	hit_test_fireball.configure(Vector3(0.0, 0.0, -1.0), 12.0, 10.0)
+	var hit_count_before: int = target_dummy.hit_count
+	for index in range(30):
+		if not is_instance_valid(hit_test_fireball) or hit_test_fireball.is_queued_for_deletion():
+			break
+		hit_test_fireball._process(0.016)
+	await process_frame
+	_assert(target_dummy.hit_count > hit_count_before, "Fireball impact hits target dummy")
+	_assert(not is_instance_valid(hit_test_fireball) or hit_test_fireball.is_queued_for_deletion(), "Fireball disappears on impact")
 
 	var voice_before: float = voice_power_tracker.get_voice_power()
 	Input.action_press("voice_charge")
