@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "spell_id": "fireball",
+  "spell_name": "Fireball",
+  "final_power": 2.1,
+  "final_cost": 52.5,
+  "stability": 0.94,
+  "mana_spent": 40.0,
+  "health_spent": 12.5,
+  "message": "Fireball cast successfully."
+}

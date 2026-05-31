@@ -1,0 +1,14 @@
+{
+  "caster": "Player",
+  "raw_input": "RAK TOR",
+  "input_type": "typed",
+  "voice_power": 0.5,
+  "diagram_type": "triangle",
+  "diagram_accuracy": 0.8,
+  "diagram_size": 0.6,
+  "target_position": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  }
+}
