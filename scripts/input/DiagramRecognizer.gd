@@ -91,6 +91,7 @@ func _classify_points() -> Dictionary:
 
 	var corner_count: int = _estimate_corner_count()
 	var central_ratio: float = float(central_point_count) / float(_points.size())
+	var distinct_point_count: int = _count_distinct_points()
 
 	if closed and central_ratio >= 0.12 and radius_deviation <= 0.55:
 		return {
@@ -100,7 +101,26 @@ func _classify_points() -> Dictionary:
 			"point_count": _points.size()
 		}
 
-	if closed and corner_count >= 3 and corner_count <= 4:
+	if closed and distinct_point_count >= 3 and distinct_point_count <= 4 and central_ratio < 0.12:
+		return {
+			"shape_type": "triangle",
+			"accuracy": clamp(0.75 + float(4 - distinct_point_count) * 0.1, 0.0, 1.0),
+			"size": size,
+			"point_count": _points.size()
+		}
+
+	if closed and radius_deviation <= 0.22:
+		return {
+			"shape_type": "circle",
+			"accuracy": clamp(1.0 - radius_deviation, 0.0, 1.0),
+			"size": size,
+			"point_count": _points.size()
+		}
+
+	if closed and (
+		(corner_count >= 2 and corner_count <= 4) or
+		(distinct_point_count >= 3 and distinct_point_count <= 4 and radius_deviation > 0.12)
+	):
 		return {
 			"shape_type": "triangle",
 			"accuracy": clamp(1.0 - abs(corner_count - 3) * 0.35, 0.0, 1.0),
@@ -140,3 +160,17 @@ func _estimate_corner_count() -> int:
 			corner_count += 1
 
 	return corner_count
+
+
+func _count_distinct_points() -> int:
+	var distinct_points: Array[Vector2] = []
+	for point in _points:
+		var is_new_point := true
+		for existing_point in distinct_points:
+			if point.distance_to(existing_point) <= 6.0:
+				is_new_point = false
+				break
+		if is_new_point:
+			distinct_points.append(point)
+
+	return distinct_points.size()

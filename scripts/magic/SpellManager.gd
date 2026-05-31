@@ -47,27 +47,27 @@ func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
 	match str(result.get("spell_id", "")):
 		"spark":
 			var spark = _spark_scene.instantiate()
-			spark.global_position = request.get("target_position", _player.get_target_position())
 			_active_spells.add_child(spark)
+			spark.global_position = request.get("target_position", _player.get_target_position())
 		"fireball":
 			var fireball = _fireball_scene.instantiate()
+			_active_spells.add_child(fireball)
 			fireball.global_position = _player.global_position + Vector3.UP * 1.2 + _player.get_forward_direction() * 1.2
 			fireball.configure(
 				_player.get_forward_direction(),
 				float(spell_definition.get("speed", 12.0)),
 				float(spell_definition.get("range", 20.0))
 			)
-			_active_spells.add_child(fireball)
 		"bonfire":
 			var bonfire = _bonfire_scene.instantiate()
-			bonfire.global_position = request.get("target_position", _player.get_target_position())
 			bonfire.fuel_search_radius = float(spell_definition.get("fuel_search_radius", 3.0))
 			bonfire.fuel_consume_interval_seconds = float(spell_definition.get("fuel_consume_interval_seconds", 5.0))
 			bonfire.no_fuel_lifetime_seconds = float(spell_definition.get("no_fuel_lifetime_seconds", 3.0))
 			_active_spells.add_child(bonfire)
+			bonfire.global_position = request.get("target_position", _player.get_target_position())
 
 
 func _spawn_backlash(request: Dictionary) -> void:
 	var backlash = _backlash_scene.instantiate()
-	backlash.global_position = request.get("target_position", _player.get_target_position())
 	_active_spells.add_child(backlash)
+	backlash.global_position = request.get("target_position", _player.get_target_position())

@@ -18,16 +18,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var input_vector := Vector2.ZERO
-
-	if Input.is_physical_key_pressed(KEY_A):
-		input_vector.x -= 1.0
-	if Input.is_physical_key_pressed(KEY_D):
-		input_vector.x += 1.0
-	if Input.is_physical_key_pressed(KEY_W):
-		input_vector.y -= 1.0
-	if Input.is_physical_key_pressed(KEY_S):
-		input_vector.y += 1.0
+	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 	var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
 	if move_direction != Vector3.ZERO:
