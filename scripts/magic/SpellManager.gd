@@ -58,6 +58,7 @@ func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
 				float(spell_definition.get("speed", 12.0)),
 				float(spell_definition.get("range", 20.0))
 			)
+			fireball.set_splash_radius(1.8)
 		"bonfire":
 			var bonfire = _bonfire_scene.instantiate()
 			bonfire.fuel_search_radius = float(spell_definition.get("fuel_search_radius", 3.0))

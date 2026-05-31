@@ -9,12 +9,18 @@ var _distance_travelled := 0.0
 @onready var _base_scale: Vector3 = _mesh.scale
 
 var _impact_scene := preload("res://scenes/effects/ImpactBurst.tscn")
+var _scorch_scene := preload("res://scenes/effects/ScorchMark.tscn")
+var _splash_radius := 1.8
 
 
 func configure(direction: Vector3, speed: float, max_range: float) -> void:
 	_direction = direction.normalized()
 	_speed = speed
 	_max_range = max_range
+
+
+func set_splash_radius(value: float) -> void:
+	_splash_radius = value
 
 
 func _process(delta: float) -> void:
@@ -48,7 +54,20 @@ func _handle_collision(hit_result: Dictionary) -> void:
 	if collider != null and collider.has_method("receive_fire_hit"):
 		collider.receive_fire_hit(impact_position)
 
+	_apply_splash_damage(impact_position, collider)
+
 	var impact: Node3D = _impact_scene.instantiate()
 	get_parent().add_child(impact)
 	impact.global_position = impact_position + Vector3.UP * 0.25
+	var scorch: Node3D = _scorch_scene.instantiate()
+	get_parent().add_child(scorch)
+	scorch.global_position = Vector3(impact_position.x, 0.02, impact_position.z)
 	queue_free()
+
+
+func _apply_splash_damage(impact_position: Vector3, direct_collider: Object) -> void:
+	for node in get_tree().get_nodes_in_group("target_dummy"):
+		if node == direct_collider or not node.has_method("receive_fire_hit"):
+			continue
+		if node.global_position.distance_to(impact_position) <= _splash_radius:
+			node.receive_fire_hit(impact_position)
