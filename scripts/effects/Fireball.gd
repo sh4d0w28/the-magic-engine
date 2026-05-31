@@ -13,6 +13,7 @@ var _distance_travelled := 0.0
 var _impact_scene := preload("res://scenes/effects/ImpactBurst.tscn")
 var _scorch_scene := preload("res://scenes/effects/ScorchMark.tscn")
 var _splash_radius := 1.8
+var _direct_hit_radius := 0.38
 
 
 func configure(direction: Vector3, speed: float, max_range: float) -> void:
@@ -30,7 +31,7 @@ func set_splash_radius(value: float) -> void:
 func _process(delta: float) -> void:
 	var movement := _direction * _speed * delta
 	var next_position: Vector3 = global_position + movement
-	var hit_result: Dictionary = _find_collision(global_position, next_position)
+	var hit_result: Dictionary = _find_collision(next_position)
 	if not hit_result.is_empty():
 		_handle_collision(hit_result)
 		return
@@ -45,11 +46,28 @@ func _process(delta: float) -> void:
 		queue_free()
 
 
-func _find_collision(from_position: Vector3, to_position: Vector3) -> Dictionary:
-	var space_state := get_world_3d().direct_space_state
-	var query := PhysicsRayQueryParameters3D.create(from_position, to_position)
+func _find_collision(sample_position: Vector3) -> Dictionary:
+	var collision_sphere := SphereShape3D.new()
+	collision_sphere.radius = _direct_hit_radius
+
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = collision_sphere
+	query.transform = Transform3D(Basis.IDENTITY, sample_position)
 	query.exclude = [self]
-	return space_state.intersect_ray(query)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+
+	var space_state := get_world_3d().direct_space_state
+	var results: Array[Dictionary] = space_state.intersect_shape(query, 8)
+	for result in results:
+		var collider: Object = result.get("collider")
+		if collider != null and collider.has_method("receive_fire_hit"):
+			return {
+				"collider": collider,
+				"position": sample_position
+			}
+
+	return {}
 
 
 func _handle_collision(hit_result: Dictionary) -> void:
@@ -73,7 +91,9 @@ func _apply_splash_damage(impact_position: Vector3, direct_collider: Object) -> 
 	for node in get_tree().get_nodes_in_group("target_dummy"):
 		if node == direct_collider or not node.has_method("receive_fire_hit"):
 			continue
-		if node.global_position.distance_to(impact_position) <= _splash_radius:
+		var splash_offset: Vector3 = node.global_position - impact_position
+		splash_offset.y = 0.0
+		if splash_offset.length() <= _splash_radius:
 			node.receive_fire_hit(impact_position)
 
 

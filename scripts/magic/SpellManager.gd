@@ -64,8 +64,7 @@ func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
 			_active_spells.add_child(fireball)
 			var target_position: Vector3 = request.get("target_position", _player.get_target_position())
 			var launch_origin := _player.global_position + Vector3.UP * 1.3
-			var fireball_direction := (target_position - launch_origin)
-			fireball_direction.y = 0.0
+			var fireball_direction := target_position - launch_origin
 			if fireball_direction == Vector3.ZERO:
 				fireball_direction = _player.get_forward_direction()
 			fireball_direction = fireball_direction.normalized()
