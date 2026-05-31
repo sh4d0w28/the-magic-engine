@@ -34,6 +34,10 @@ text = "Health: --"
 layout_mode = 2
 text = "Mana: --"
 
+[node name="ScoreLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Score: 0"
+
 [node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Status: Ready"
@@ -45,6 +49,10 @@ text = "Move: WASD  Camera: Hold LMB + Mouse  Cast: Enter  Voice: Hold V  Diagra
 [node name="VoicePowerLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Voice Power: 0.00"
+
+[node name="CombatFeedLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Combat: Waiting for first hit"
 
 [node name="InputLine" type="LineEdit" parent="MarginContainer/VBoxContainer"]
 visible = false

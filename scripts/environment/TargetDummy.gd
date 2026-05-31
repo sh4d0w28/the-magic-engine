@@ -1,8 +1,12 @@
 extends StaticBody3D
 
+signal dummy_damaged(current_health: int, max_health: int)
+signal dummy_destroyed(score_value: int)
+
 @export var hit_flash_duration: float = 0.18
 @export var max_health: int = 3
 @export var destroy_delay_seconds: float = 0.35
+@export var score_value: int = 1
 
 @onready var _body_mesh: MeshInstance3D = $BodyMesh
 @onready var _head_mesh: MeshInstance3D = $HeadMesh
@@ -21,6 +25,7 @@ func _ready() -> void:
 	_body_material = _duplicate_material(_body_mesh)
 	_head_material = _duplicate_material(_head_mesh)
 	current_health = max_health
+	_update_health_visuals()
 
 
 func _process(delta: float) -> void:
@@ -64,6 +69,8 @@ func _apply_damage(amount: int, body_color: Color, head_color: Color) -> void:
 		_body_material.emission = body_color
 	if _head_material != null:
 		_head_material.emission = head_color
+	_update_health_visuals()
+	dummy_damaged.emit(current_health, max_health)
 	if current_health == 0:
 		_begin_destroy()
 
@@ -73,6 +80,18 @@ func _begin_destroy() -> void:
 	_destroy_timer = destroy_delay_seconds
 	collision_layer = 0
 	collision_mask = 0
+	dummy_destroyed.emit(score_value)
+
+
+func _update_health_visuals() -> void:
+	var health_ratio: float = float(current_health) / float(max(max_health, 1))
+	var base_color := Color(1.0, 0.28, 0.18, 1.0).lerp(Color(0.45, 0.85, 0.35, 1.0), health_ratio)
+	if _body_material != null:
+		_body_material.albedo_color = base_color.darkened(0.1)
+	if _head_material != null:
+		_head_material.albedo_color = base_color.lightened(0.08)
+	_body_mesh.scale = Vector3(1.0, 0.8 + health_ratio * 0.2, 1.0)
+	_head_mesh.position.y = 1.75 + health_ratio * 0.25
 
 
 func _duplicate_material(mesh_instance: MeshInstance3D) -> StandardMaterial3D:

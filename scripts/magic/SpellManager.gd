@@ -14,9 +14,19 @@ var _backlash_scene := preload("res://scenes/effects/BacklashEffect.tscn")
 @onready var _voice_power_tracker: Node = $"../InputController/VoicePowerTracker"
 @onready var _diagram_recognizer: Node = $"../InputController/DiagramRecognizer"
 
+var _score := 0
+
 
 func _ready() -> void:
 	_magic_engine.setup(_spell_definitions)
+	call_deferred("_initialize_combat_feedback")
+
+
+func _initialize_combat_feedback() -> void:
+	get_tree().node_added.connect(_on_node_added)
+	for node in get_tree().get_nodes_in_group("target_dummy"):
+		_connect_target_dummy(node)
+	_hud.set_score(_score)
 
 
 func submit_typed_incantation(raw_input: String, normalized_input: String) -> void:
@@ -72,3 +82,25 @@ func _spawn_backlash(request: Dictionary) -> void:
 	var backlash = _backlash_scene.instantiate()
 	_active_spells.add_child(backlash)
 	backlash.global_position = request.get("target_position", _player.get_target_position())
+
+
+func _on_node_added(node: Node) -> void:
+	if node.has_signal("dummy_damaged") or node.has_signal("dummy_destroyed"):
+		_connect_target_dummy(node)
+
+
+func _connect_target_dummy(node: Node) -> void:
+	if node.has_signal("dummy_damaged") and not node.dummy_damaged.is_connected(_on_dummy_damaged):
+		node.dummy_damaged.connect(_on_dummy_damaged)
+	if node.has_signal("dummy_destroyed") and not node.dummy_destroyed.is_connected(_on_dummy_destroyed):
+		node.dummy_destroyed.connect(_on_dummy_destroyed)
+
+
+func _on_dummy_damaged(current_health: int, max_health: int) -> void:
+	_hud.set_combat_feed("Dummy hit: %d/%d health remaining" % [current_health, max_health])
+
+
+func _on_dummy_destroyed(score_value: int) -> void:
+	_score += score_value
+	_hud.set_score(_score)
+	_hud.set_combat_feed("Dummy destroyed. Score +%d" % score_value)

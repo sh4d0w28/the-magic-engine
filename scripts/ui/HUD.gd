@@ -4,9 +4,11 @@ signal input_submitted(text: String)
 
 @onready var _health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var _mana_label: Label = $MarginContainer/VBoxContainer/ManaLabel
+@onready var _score_label: Label = $MarginContainer/VBoxContainer/ScoreLabel
 @onready var _status_label: Label = $MarginContainer/VBoxContainer/StatusLabel
 @onready var _controls_label: Label = $MarginContainer/VBoxContainer/ControlsLabel
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
+@onready var _combat_feed_label: Label = $MarginContainer/VBoxContainer/CombatFeedLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 @onready var _aim_reticle: Control = $AimReticle
 
@@ -19,6 +21,7 @@ func _ready() -> void:
 		player.health_mana_changed.connect(set_health_and_mana)
 		set_health_and_mana(player.get_health(), player.get_mana())
 	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
+	_combat_feed_label.modulate = Color(1.0, 0.9, 0.7, 0.95)
 
 
 func _process(_delta: float) -> void:
@@ -36,6 +39,14 @@ func set_status(message: String) -> void:
 
 func set_voice_power(voice_power: float) -> void:
 	_voice_power_label.text = "Voice Power: %.2f" % voice_power
+
+
+func set_score(score: int) -> void:
+	_score_label.text = "Score: %d" % score
+
+
+func set_combat_feed(message: String) -> void:
+	_combat_feed_label.text = "Combat: %s" % message
 
 
 func open_input() -> void:
