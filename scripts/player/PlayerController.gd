@@ -6,27 +6,30 @@ signal health_mana_changed(health: float, mana: float)
 @export var movement_speed: float = 6.5
 @export var acceleration: float = 18.0
 @export var deceleration: float = 22.0
-@export var turn_speed: float = 9.0
+@export var mouse_sensitivity: float = 0.0045
+@export var max_camera_pitch_degrees: float = 55.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _energy_system: Node = $EnergySystem
+@onready var _camera_pivot: Node3D = $CameraPivot
+
+var _camera_pitch_radians := deg_to_rad(-25.0)
 
 
 func _ready() -> void:
 	add_to_group("player_controller")
 	if _energy_system.has_signal("changed"):
 		_energy_system.changed.connect(_on_energy_changed)
+	_camera_pitch_radians = _camera_pivot.rotation.x
 	_on_energy_changed(get_health(), get_mana())
 
 
 func _physics_process(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-
-	var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
+	var move_direction := _get_camera_relative_direction(input_vector)
 	if move_direction != Vector3.ZERO:
 		move_direction = move_direction.normalized()
-		_rotate_toward_direction(move_direction, delta)
 
 	var desired_velocity := move_direction * movement_speed
 	var move_lerp_weight := acceleration if move_direction != Vector3.ZERO else deceleration
@@ -39,6 +42,12 @@ func _physics_process(delta: float) -> void:
 		velocity.y = 0.0
 
 	move_and_slide()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and Input.is_action_pressed("camera_orbit"):
+		orbit_camera(event.relative)
+		get_viewport().set_input_as_handled()
 
 
 func spend_mana(amount: float) -> float:
@@ -58,7 +67,7 @@ func is_alive() -> bool:
 
 
 func get_forward_direction() -> Vector3:
-	var forward := -global_transform.basis.z
+	var forward: Vector3 = -$CameraPivot/Camera3D.global_transform.basis.z
 	return Vector3(forward.x, 0.0, forward.z).normalized()
 
 
@@ -90,6 +99,22 @@ func _on_energy_changed(health: float, mana: float) -> void:
 	health_mana_changed.emit(health, mana)
 
 
-func _rotate_toward_direction(move_direction: Vector3, delta: float) -> void:
-	var target_yaw := atan2(-move_direction.x, -move_direction.z)
-	rotation.y = rotate_toward(rotation.y, target_yaw, turn_speed * delta)
+func orbit_camera(relative_motion: Vector2) -> void:
+	rotation.y -= relative_motion.x * mouse_sensitivity
+	_camera_pitch_radians = clampf(
+		_camera_pitch_radians - relative_motion.y * mouse_sensitivity,
+		deg_to_rad(-max_camera_pitch_degrees),
+		deg_to_rad(15.0)
+	)
+	_camera_pivot.rotation.x = _camera_pitch_radians
+
+
+func _get_camera_relative_direction(input_vector: Vector2) -> Vector3:
+	var camera_forward: Vector3 = -$CameraPivot/Camera3D.global_transform.basis.z
+	var camera_right: Vector3 = $CameraPivot/Camera3D.global_transform.basis.x
+	camera_forward.y = 0.0
+	camera_right.y = 0.0
+	camera_forward = camera_forward.normalized()
+	camera_right = camera_right.normalized()
+
+	return camera_right * input_vector.x - camera_forward * input_vector.y
