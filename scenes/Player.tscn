@@ -14,6 +14,7 @@ albedo_color = Color(0.913725, 0.541176, 0.286275, 1)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_b4lhy")
+rotation_order = 1
 
 [node name="EnergySystem" type="Node" parent="."]
 script = ExtResource("2_5nohy")
@@ -26,8 +27,8 @@ surface_material_override/0 = SubResource("StandardMaterial3D_player")
 shape = SubResource("BoxShape3D_player")
 
 [node name="CameraPivot" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.9, 0)
 
 [node name="Camera3D" type="Camera3D" parent="CameraPivot"]
-transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 4.5, 7.5)
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 3.9, 6.6)
 current = true

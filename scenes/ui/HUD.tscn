@@ -38,6 +38,10 @@ text = "Mana: --"
 layout_mode = 2
 text = "Status: Ready"
 
+[node name="ControlsLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Move: WASD  Cast: Enter  Voice: Hold V  Diagram: Hold RMB"
+
 [node name="VoicePowerLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Voice Power: 0.00"

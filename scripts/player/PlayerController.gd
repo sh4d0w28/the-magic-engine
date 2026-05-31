@@ -3,7 +3,10 @@ extends CharacterBody3D
 signal health_mana_changed(health: float, mana: float)
 
 @export var player_id: String = "player_1"
-@export var movement_speed: float = 6.0
+@export var movement_speed: float = 6.5
+@export var acceleration: float = 18.0
+@export var deceleration: float = 22.0
+@export var turn_speed: float = 9.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -23,9 +26,12 @@ func _physics_process(delta: float) -> void:
 	var move_direction := Vector3(input_vector.x, 0.0, input_vector.y)
 	if move_direction != Vector3.ZERO:
 		move_direction = move_direction.normalized()
+		_rotate_toward_direction(move_direction, delta)
 
-	velocity.x = move_direction.x * movement_speed
-	velocity.z = move_direction.z * movement_speed
+	var desired_velocity := move_direction * movement_speed
+	var move_lerp_weight := acceleration if move_direction != Vector3.ZERO else deceleration
+	velocity.x = move_toward(velocity.x, desired_velocity.x, move_lerp_weight * delta)
+	velocity.z = move_toward(velocity.z, desired_velocity.z, move_lerp_weight * delta)
 
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
@@ -77,8 +83,13 @@ func get_energy_system() -> Node:
 
 
 func get_target_position() -> Vector3:
-	return global_position + get_forward_direction() * 4.0
+	return global_position + get_forward_direction() * 5.5
 
 
 func _on_energy_changed(health: float, mana: float) -> void:
 	health_mana_changed.emit(health, mana)
+
+
+func _rotate_toward_direction(move_direction: Vector3, delta: float) -> void:
+	var target_yaw := atan2(-move_direction.x, -move_direction.z)
+	rotation.y = rotate_toward(rotation.y, target_yaw, turn_speed * delta)

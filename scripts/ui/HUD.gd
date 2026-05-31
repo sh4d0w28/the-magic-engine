@@ -5,6 +5,7 @@ signal input_submitted(text: String)
 @onready var _health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var _mana_label: Label = $MarginContainer/VBoxContainer/ManaLabel
 @onready var _status_label: Label = $MarginContainer/VBoxContainer/StatusLabel
+@onready var _controls_label: Label = $MarginContainer/VBoxContainer/ControlsLabel
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 
@@ -16,6 +17,7 @@ func _ready() -> void:
 	if player != null and player.has_signal("health_mana_changed"):
 		player.health_mana_changed.connect(set_health_and_mana)
 		set_health_and_mana(player.get_health(), player.get_mana())
+	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
 
 
 func set_health_and_mana(health: float, mana: float) -> void:
