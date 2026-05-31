@@ -93,10 +93,13 @@ func get_energy_system() -> Node:
 
 func get_target_position() -> Vector3:
 	var camera: Camera3D = $CameraPivot/Camera3D
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var screen_center := viewport_size * 0.5
-	var ray_origin: Vector3 = camera.project_ray_origin(screen_center)
-	var ray_direction: Vector3 = camera.project_ray_normal(screen_center)
+	var viewport := get_viewport()
+	var target_screen_position: Vector2 = viewport.get_mouse_position()
+	if target_screen_position == Vector2.ZERO:
+		target_screen_position = viewport.get_visible_rect().size * 0.5
+
+	var ray_origin: Vector3 = camera.project_ray_origin(target_screen_position)
+	var ray_direction: Vector3 = camera.project_ray_normal(target_screen_position)
 	var ground_plane := Plane(Vector3.UP, 0.0)
 	var target_position: Variant = ground_plane.intersects_ray(ray_origin, ray_direction)
 	if target_position is Vector3:
