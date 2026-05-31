@@ -163,8 +163,11 @@ func _run() -> void:
 	await process_frame
 
 	var voice_before: float = voice_power_tracker.get_voice_power()
+	Input.action_press("voice_charge")
 	voice_power_tracker._process(1.5)
-	_assert(voice_power_tracker.get_voice_power() >= voice_before, "Holding V increases voice_power")
+	Input.action_release("voice_charge")
+	voice_power_tracker._process(0.1)
+	_assert(voice_power_tracker.get_voice_power() > voice_before, "Holding V increases voice_power")
 
 	voice_power_tracker.reset()
 	voice_power_tracker._set_voice_power(1.0)

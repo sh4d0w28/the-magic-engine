@@ -3,6 +3,8 @@ class_name DiagramRecognizer
 
 signal diagram_changed(diagram_result: Dictionary)
 
+@export var min_point_spacing: float = 8.0
+
 var _is_drawing := false
 var _points: Array[Vector2] = []
 var _last_result: Dictionary = {
@@ -22,7 +24,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_finish_drawing()
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and _is_drawing:
-		_points.append(event.position)
+		if _points.is_empty() or _points[_points.size() - 1].distance_to(event.position) >= min_point_spacing:
+			_points.append(event.position)
 		get_viewport().set_input_as_handled()
 
 
