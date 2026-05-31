@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/input/VoicePowerTracker.gd" id="7_7lgpd"]
 [ext_resource type="Script" path="res://scripts/input/DiagramRecognizer.gd" id="8_jdli3"]
 [ext_resource type="PackedScene" path="res://scenes/effects/TargetIndicator.tscn" id="9_dq4vf"]
+[ext_resource type="PackedScene" path="res://scenes/environment/TargetDummy.tscn" id="10_u2gkf"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(30, 1, 30)
@@ -33,6 +34,8 @@ shape = SubResource("BoxShape3D_ground")
 
 [node name="WoodPiles" type="Node3D" parent="World/Environment"]
 
+[node name="TargetDummies" type="Node3D" parent="World/Environment"]
+
 [node name="WoodPileA" parent="World/Environment/WoodPiles" instance=ExtResource("6_4s32g")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
 
@@ -41,6 +44,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -1)
 
 [node name="WoodPileC" parent="World/Environment/WoodPiles" instance=ExtResource("6_4s32g")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+
+[node name="TargetDummyA" parent="World/Environment/TargetDummies" instance=ExtResource("10_u2gkf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -6.5)
+
+[node name="TargetDummyB" parent="World/Environment/TargetDummies" instance=ExtResource("10_u2gkf")]
+transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 3.8, 0, -7.5)
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(0.707107, -0.612372, 0.353553, 0, 0.5, 0.866025, -0.707107, -0.612372, 0.353553, 0, 8, 0)
