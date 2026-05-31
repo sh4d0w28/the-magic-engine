@@ -194,16 +194,16 @@ func _run() -> void:
 	draw_start.button_index = MOUSE_BUTTON_RIGHT
 	draw_start.pressed = true
 	draw_start.position = Vector2(0, 0)
-	diagram_recognizer._unhandled_input(draw_start)
+	diagram_recognizer._input(draw_start)
 	for point in [Vector2(50, 0), Vector2(25, 45), Vector2(0, 0)]:
 		var move_event := InputEventMouseMotion.new()
 		move_event.position = point
-		diagram_recognizer._unhandled_input(move_event)
+		diagram_recognizer._input(move_event)
 	var draw_end := InputEventMouseButton.new()
 	draw_end.button_index = MOUSE_BUTTON_RIGHT
 	draw_end.pressed = false
 	draw_end.position = Vector2(0, 0)
-	diagram_recognizer._unhandled_input(draw_end)
+	diagram_recognizer._input(draw_end)
 	var triangle_result: Dictionary = diagram_recognizer.get_diagram_result()
 	_assert(triangle_result.get("point_count", 0) >= 3, "Drawing records points")
 	_assert(triangle_result.get("shape_type", "") == "triangle", "Triangle is detected")
