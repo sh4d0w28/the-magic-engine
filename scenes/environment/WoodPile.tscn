@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://dphp0v2lq2pw8"]
+
+[ext_resource type="Script" path="res://scripts/environment/WoodPile.gd" id="1_hovtc"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_wood_pile"]
+size = Vector3(1.4, 0.7, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood_pile"]
+albedo_color = Color(0.411765, 0.278431, 0.14902, 1)
+
+[node name="WoodPile" type="Node3D"]
+script = ExtResource("1_hovtc")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_wood_pile")
+surface_material_override/0 = SubResource("StandardMaterial3D_wood_pile")
