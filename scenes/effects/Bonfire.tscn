@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://cw2xcr1jcflvl"]
+
+[ext_resource type="Script" path="res://scripts/effects/Bonfire.gd" id="1_q2cow"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bonfire"]
+top_radius = 0.55
+bottom_radius = 0.75
+height = 1.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bonfire"]
+albedo_color = Color(1, 0.509804, 0.156863, 1)
+emission_enabled = true
+emission = Color(1, 0.352941, 0.0784314, 1)
+emission_energy_multiplier = 2.2
+
+[node name="Bonfire" type="Node3D"]
+script = ExtResource("1_q2cow")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CylinderMesh_bonfire")
+surface_material_override/0 = SubResource("StandardMaterial3D_bonfire")
