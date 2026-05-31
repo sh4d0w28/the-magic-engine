@@ -12,6 +12,10 @@ signal input_submitted(text: String)
 func _ready() -> void:
 	_input_line.text_submitted.connect(_on_input_submitted)
 	_input_line.hide()
+	var player := get_tree().get_first_node_in_group("player_controller")
+	if player != null and player.has_signal("health_mana_changed"):
+		player.health_mana_changed.connect(set_health_and_mana)
+		set_health_and_mana(player.get_health(), player.get_mana())
 
 
 func set_health_and_mana(health: float, mana: float) -> void:

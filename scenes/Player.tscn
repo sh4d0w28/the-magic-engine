@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://ce1vttg4l22a2"]
+[gd_scene load_steps=6 format=3 uid="uid://ce1vttg4l22a2"]
 
 [ext_resource type="Script" path="res://scripts/player/PlayerController.gd" id="1_b4lhy"]
+[ext_resource type="Script" path="res://scripts/player/EnergySystem.gd" id="2_5nohy"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_player"]
 size = Vector3(1, 2, 1)
@@ -13,6 +14,9 @@ albedo_color = Color(0.913725, 0.541176, 0.286275, 1)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_b4lhy")
+
+[node name="EnergySystem" type="Node" parent="."]
+script = ExtResource("2_5nohy")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_player")
