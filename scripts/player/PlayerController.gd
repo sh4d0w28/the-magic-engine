@@ -1,6 +1,8 @@
 extends CharacterBody3D
 
 signal health_mana_changed(health: float, mana: float)
+signal player_damaged(amount: float, health_remaining: float)
+signal player_defeated
 
 @export var player_id: String = "player_1"
 @export var movement_speed: float = 6.5
@@ -15,6 +17,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _camera_pivot: Node3D = $CameraPivot
 
 var _camera_pitch_radians := deg_to_rad(-25.0)
+var _defeat_reported := false
 
 
 func _ready() -> void:
@@ -26,6 +29,10 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if not is_alive():
+		velocity = Vector3.ZERO
+		return
+
 	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var move_direction := _get_camera_relative_direction(input_vector)
 	if move_direction != Vector3.ZERO:
@@ -45,6 +52,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not is_alive():
+		return
+
 	if event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
 		orbit_camera(event.relative)
 		get_viewport().set_input_as_handled()
@@ -60,6 +70,26 @@ func drain_health(amount: float) -> bool:
 
 func restore_mana(delta: float) -> void:
 	_energy_system.restore_mana(delta)
+
+
+func take_damage(amount: float) -> bool:
+	var was_alive := is_alive()
+	var alive_after_hit: bool = _energy_system.apply_damage(amount)
+	player_damaged.emit(amount, get_health())
+	if was_alive and not alive_after_hit and not _defeat_reported:
+		_defeat_reported = true
+		player_defeated.emit()
+	return alive_after_hit
+
+
+func restore_to_full() -> void:
+	_defeat_reported = false
+	_energy_system.restore_full()
+
+
+func reset_to_transform(respawn_transform: Transform3D) -> void:
+	transform = respawn_transform
+	velocity = Vector3.ZERO
 
 
 func is_alive() -> bool:

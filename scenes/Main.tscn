@@ -1,6 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://d2itcma2pfpc7"]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_wj1b0"]
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_ucbq2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HUD.tscn" id="2_8gobr"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DebugPanel.tscn" id="3_a24eb"]
 [ext_resource type="Script" path="res://scripts/input/InputController.gd" id="4_7yyh0"]
@@ -19,6 +20,7 @@ size = Vector3(30, 1, 30)
 size = Vector3(30, 1, 30)
 
 [node name="Main" type="Node3D"]
+script = ExtResource("1_ucbq2")
 
 [node name="World" type="Node3D" parent="."]
 

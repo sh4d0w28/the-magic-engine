@@ -284,6 +284,25 @@ func _run() -> void:
 	_assert(hud.get_node("MarginContainer/VBoxContainer/ScoreLabel").text.ends_with("1"), "Destroying dummy increases score")
 	_assert(hud.get_node("MarginContainer/VBoxContainer/CombatFeedLabel").text.contains("Dummy destroyed"), "Combat feed reports dummy destruction")
 
+	player.restore_to_full()
+	var player_health_before_hit: float = player.get_health()
+	hostile_enemy.force_attack_player()
+	await process_frame
+	_assert(player.get_health() < player_health_before_hit, "Hostile enemy damages player on contact")
+
+	player.restore_to_full()
+	player.take_damage(88.0)
+	hostile_enemy.force_attack_player()
+	await process_frame
+	main._process(float(main.get("encounter_reset_delay_seconds")) + 0.1)
+	await process_frame
+	await process_frame
+	_assert(is_equal_approx(player.get_health(), 100.0), "Player health resets after defeat")
+	_assert(is_equal_approx(player.get_mana(), 100.0), "Player mana resets after defeat")
+	_assert(player.global_position.distance_to(start_position) < 0.05, "Player respawns at arena start after defeat")
+	_assert(hostiles.get_child_count() >= 1, "Hostile enemies respawn after defeat")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/CombatFeedLabel").text.contains("Arena reset"), "Combat feed reports encounter reset")
+
 	var voice_before: float = voice_power_tracker.get_voice_power()
 	Input.action_press("voice_charge")
 	voice_power_tracker._process(1.5)
