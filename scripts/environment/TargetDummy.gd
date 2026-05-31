@@ -12,6 +12,7 @@ signal dummy_destroyed(score_value: int)
 @onready var _head_mesh: MeshInstance3D = $HeadMesh
 @onready var _health_bar_pivot: Node3D = $HealthBarPivot
 @onready var _health_bar_fill: MeshInstance3D = $HealthBarPivot/HealthBarFill
+@onready var _debug_hitbox: MeshInstance3D = $DebugHitbox
 
 var _body_material: StandardMaterial3D
 var _head_material: StandardMaterial3D
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_head_material = _duplicate_material(_head_mesh)
 	current_health = max_health
 	_update_health_visuals()
+	_debug_hitbox.visible = true
 
 
 func _process(delta: float) -> void:

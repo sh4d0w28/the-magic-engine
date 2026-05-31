@@ -62,9 +62,16 @@ func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
 		"fireball":
 			var fireball = _fireball_scene.instantiate()
 			_active_spells.add_child(fireball)
-			fireball.global_position = _player.global_position + Vector3.UP * 1.3 + _player.get_forward_direction() * 1.6
+			var target_position: Vector3 = request.get("target_position", _player.get_target_position())
+			var launch_origin := _player.global_position + Vector3.UP * 1.3
+			var fireball_direction := (target_position - launch_origin)
+			fireball_direction.y = 0.0
+			if fireball_direction == Vector3.ZERO:
+				fireball_direction = _player.get_forward_direction()
+			fireball_direction = fireball_direction.normalized()
+			fireball.global_position = launch_origin + fireball_direction * 1.6
 			fireball.configure(
-				_player.get_forward_direction(),
+				fireball_direction,
 				float(spell_definition.get("speed", 12.0)),
 				float(spell_definition.get("range", 20.0))
 			)

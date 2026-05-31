@@ -7,6 +7,8 @@ var _distance_travelled := 0.0
 
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
 @onready var _base_scale: Vector3 = _mesh.scale
+@onready var _debug_direct_hit: MeshInstance3D = $DebugDirectHit
+@onready var _debug_splash_radius: MeshInstance3D = $DebugSplashRadius
 
 var _impact_scene := preload("res://scenes/effects/ImpactBurst.tscn")
 var _scorch_scene := preload("res://scenes/effects/ScorchMark.tscn")
@@ -17,10 +19,12 @@ func configure(direction: Vector3, speed: float, max_range: float) -> void:
 	_direction = direction.normalized()
 	_speed = speed
 	_max_range = max_range
+	_update_debug_radius()
 
 
 func set_splash_radius(value: float) -> void:
 	_splash_radius = value
+	_update_debug_radius()
 
 
 func _process(delta: float) -> void:
@@ -71,3 +75,9 @@ func _apply_splash_damage(impact_position: Vector3, direct_collider: Object) -> 
 			continue
 		if node.global_position.distance_to(impact_position) <= _splash_radius:
 			node.receive_fire_hit(impact_position)
+
+
+func _update_debug_radius() -> void:
+	if _debug_splash_radius != null:
+		var radius_scale := maxf(_splash_radius / 1.8, 0.001)
+		_debug_splash_radius.scale = Vector3.ONE * radius_scale

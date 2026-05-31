@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://c73ewba46aqw1"]
+[gd_scene load_steps=12 format=3 uid="uid://c73ewba46aqw1"]
 
 [ext_resource type="Script" path="res://scripts/environment/TargetDummy.gd" id="1_hf6ic"]
 
@@ -34,12 +34,30 @@ shading_mode = 0
 [sub_resource type="QuadMesh" id="QuadMesh_health_bar"]
 size = Vector2(1.0, 0.12)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hitbox_debug"]
+albedo_color = Color(0.2, 1, 0.4, 0.18)
+transparency = 1
+shading_mode = 0
+emission_enabled = true
+emission = Color(0.2, 1, 0.4, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hitbox_debug"]
+top_radius = 0.6
+bottom_radius = 0.6
+height = 1.8
+
 [node name="TargetDummy" type="StaticBody3D"]
 script = ExtResource("1_hf6ic")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CylinderShape3D_dummy_body")
+
+[node name="DebugHitbox" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CylinderMesh_hitbox_debug")
+surface_material_override/0 = SubResource("StandardMaterial3D_hitbox_debug")
 
 [node name="BodyMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 0.9, 0)

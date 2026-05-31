@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dx27wip6q6udk"]
+[gd_scene load_steps=8 format=3 uid="uid://dx27wip6q6udk"]
 
 [ext_resource type="Script" path="res://scripts/effects/Fireball.gd" id="1_h7yd1"]
 
@@ -12,9 +12,41 @@ emission_enabled = true
 emission = Color(1, 0.34902, 0.0784314, 1)
 emission_energy_multiplier = 3.0
 
+[sub_resource type="SphereMesh" id="SphereMesh_debug_direct"]
+radius = 0.38
+height = 0.76
+
+[sub_resource type="SphereMesh" id="SphereMesh_debug_splash"]
+radius = 1.8
+height = 3.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_debug_direct"]
+albedo_color = Color(1, 0.5, 0.1, 0.12)
+transparency = 1
+shading_mode = 0
+emission_enabled = true
+emission = Color(1, 0.5, 0.1, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_debug_splash"]
+albedo_color = Color(1, 0.15, 0.1, 0.06)
+transparency = 1
+shading_mode = 0
+emission_enabled = true
+emission = Color(1, 0.15, 0.1, 1)
+emission_energy_multiplier = 0.35
+
 [node name="Fireball" type="Node3D"]
 script = ExtResource("1_h7yd1")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("SphereMesh_fireball")
 surface_material_override/0 = SubResource("StandardMaterial3D_fireball")
+
+[node name="DebugDirectHit" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_debug_direct")
+surface_material_override/0 = SubResource("StandardMaterial3D_debug_direct")
+
+[node name="DebugSplashRadius" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_debug_splash")
+surface_material_override/0 = SubResource("StandardMaterial3D_debug_splash")
