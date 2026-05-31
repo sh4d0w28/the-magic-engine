@@ -2,6 +2,15 @@
 
 This repository contains the design package and the in-repo implementation for the first Godot 4 prototype of The Magic Engine.
 
+The current state is a playable local combat sandbox in Godot 4.6.3:
+- camera-relative movement with mouse orbit,
+- typed fire incantations,
+- simulated voice power,
+- simple diagram recognition,
+- target dummies with health, destruction, score, and combat feedback,
+- bonfire fuel gameplay with visible wood depletion,
+- optional collision debug overlays.
+
 ## Workflow
 
 Work milestone by milestone.
@@ -17,6 +26,7 @@ Work milestone by milestone.
 - `checklists/` - milestone acceptance criteria.
 - `codex_prompts/` - original implementation prompts.
 - `schemas/` - spell request and result examples.
+- `scripts/tests/AcceptanceRunner.gd` - headless regression harness for the current sandbox.
 
 ## Prototype scope
 
@@ -29,3 +39,35 @@ Phase 1 is a small local prototype:
 - simple diagram recognition,
 - fire-only magic,
 - three spells: Spark, Fireball, Bonfire.
+
+## Current Controls
+
+- `WASD` - move
+- Hold `LMB` + move mouse - orbit camera
+- `Enter` - open/submit typed incantation
+- `Escape` - cancel typed incantation
+- Hold `V` - charge voice power
+- Hold `RMB` - draw diagram
+- `F3` - toggle hitbox debug visuals
+
+## Current Sandbox Loop
+
+1. Move around the arena.
+2. Aim using the mouse reticle and ground target marker.
+3. Type `RAK`, `RAK TOR`, or `RAK DUM`.
+4. Hit target dummies to test direct hits, splash, and destruction.
+5. Use bonfires and sparks near wood to test fuel behavior.
+
+## Validation
+
+Project load check:
+
+```powershell
+.\Godot_v4.6.3-stable_win64_console.exe --headless --path . --quit
+```
+
+Full sandbox acceptance harness:
+
+```powershell
+.\Godot_v4.6.3-stable_win64_console.exe --headless --path . --script res://scripts/tests/AcceptanceRunner.gd
+```
