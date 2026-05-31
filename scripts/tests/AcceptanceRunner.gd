@@ -178,6 +178,74 @@ func _run() -> void:
 	await process_frame
 	_assert(target_dummy.hit_count > hit_count_before, "Fireball impact hits target dummy")
 	_assert(not is_instance_valid(hit_test_fireball) or hit_test_fireball.is_queued_for_deletion(), "Fireball disappears on impact")
+	var scorch_found := false
+	for child in active_spells.get_children():
+		if child.name == "ScorchMark":
+			scorch_found = true
+			child.queue_free()
+	await process_frame
+	_assert(scorch_found, "Fireball impact leaves scorch mark")
+
+	var splash_dummy_scene: PackedScene = load("res://scenes/environment/TargetDummy.tscn")
+	var direct_dummy: StaticBody3D = splash_dummy_scene.instantiate()
+	var nearby_dummy: StaticBody3D = splash_dummy_scene.instantiate()
+	world.get_node("Environment/TargetDummies").add_child(direct_dummy)
+	world.get_node("Environment/TargetDummies").add_child(nearby_dummy)
+	direct_dummy.global_position = Vector3(-1.0, 0.0, -9.0)
+	nearby_dummy.global_position = Vector3(0.2, 0.0, -9.1)
+	await process_frame
+	var splash_fireball: Node3D = fireball_scene.instantiate()
+	active_spells.add_child(splash_fireball)
+	splash_fireball.global_position = direct_dummy.global_position + Vector3(0.0, 1.0, 4.0)
+	splash_fireball.configure(Vector3(0.0, 0.0, -1.0), 12.0, 10.0)
+	splash_fireball.set_splash_radius(1.8)
+	var nearby_hit_before: int = nearby_dummy.hit_count
+	for index in range(30):
+		if not is_instance_valid(splash_fireball) or splash_fireball.is_queued_for_deletion():
+			break
+		splash_fireball._process(0.016)
+	await process_frame
+	_assert(nearby_dummy.hit_count > nearby_hit_before, "Fireball splash damages nearby dummy")
+	direct_dummy.queue_free()
+	nearby_dummy.queue_free()
+	await process_frame
+
+	var spark_dummy: StaticBody3D = splash_dummy_scene.instantiate()
+	world.get_node("Environment/TargetDummies").add_child(spark_dummy)
+	spark_dummy.global_position = Vector3(2.0, 0.0, -4.0)
+	await process_frame
+	var spark_scene: PackedScene = load("res://scenes/effects/SparkEffect.tscn")
+	var test_spark: Node3D = spark_scene.instantiate()
+	active_spells.add_child(test_spark)
+	test_spark.global_position = spark_dummy.global_position + Vector3(0.0, 1.0, 0.0)
+	var spark_hit_before: int = spark_dummy.hit_count
+	test_spark._process(0.016)
+	await process_frame
+	_assert(spark_dummy.hit_count > spark_hit_before, "Spark affects target dummy")
+	spark_dummy.queue_free()
+	await process_frame
+
+	var wood_for_spark: Node3D = wood_piles.get_child(0)
+	var wood_fuel_before_spark: float = wood_for_spark.fuel_amount
+	var wood_spark: Node3D = spark_scene.instantiate()
+	active_spells.add_child(wood_spark)
+	wood_spark.global_position = wood_for_spark.global_position + Vector3(0.0, 0.5, 0.0)
+	wood_spark._process(0.016)
+	await process_frame
+	_assert(wood_for_spark.fuel_amount < wood_fuel_before_spark, "Spark interacts with wood")
+
+	var destroy_dummy: StaticBody3D = splash_dummy_scene.instantiate()
+	world.get_node("Environment/TargetDummies").add_child(destroy_dummy)
+	destroy_dummy.global_position = Vector3(4.0, 0.0, -4.0)
+	await process_frame
+	for index in range(3):
+		destroy_dummy.receive_fire_hit(destroy_dummy.global_position)
+	for index in range(30):
+		if not is_instance_valid(destroy_dummy) or destroy_dummy.is_queued_for_deletion():
+			break
+		destroy_dummy._process(0.016)
+	await process_frame
+	_assert(not is_instance_valid(destroy_dummy) or destroy_dummy.is_queued_for_deletion(), "Target dummy is destroyed at zero health")
 
 	var voice_before: float = voice_power_tracker.get_voice_power()
 	Input.action_press("voice_charge")
