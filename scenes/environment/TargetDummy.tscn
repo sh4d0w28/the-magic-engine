@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://c73ewba46aqw1"]
+[gd_scene load_steps=10 format=3 uid="uid://c73ewba46aqw1"]
 
 [ext_resource type="Script" path="res://scripts/environment/TargetDummy.gd" id="1_hf6ic"]
 
@@ -21,6 +21,19 @@ emission_enabled = true
 emission = Color(1, 0.4, 0.2, 1)
 emission_energy_multiplier = 0.0
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_health_back"]
+albedo_color = Color(0.18, 0.12, 0.1, 0.92)
+transparency = 1
+shading_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_health_fill"]
+albedo_color = Color(0.35, 0.95, 0.5, 0.95)
+transparency = 1
+shading_mode = 0
+
+[sub_resource type="QuadMesh" id="QuadMesh_health_bar"]
+size = Vector2(1.0, 0.12)
+
 [node name="TargetDummy" type="StaticBody3D"]
 script = ExtResource("1_hf6ic")
 
@@ -37,3 +50,15 @@ surface_material_override/0 = SubResource("StandardMaterial3D_dummy")
 transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 2.0, 0)
 mesh = SubResource("SphereMesh_dummy_head")
 surface_material_override/0 = SubResource("StandardMaterial3D_dummy")
+
+[node name="HealthBarPivot" type="Node3D" parent="."]
+transform = Transform3D(0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, 0.939693, 0, 2.6, 0)
+
+[node name="HealthBarBack" type="MeshInstance3D" parent="HealthBarPivot"]
+mesh = SubResource("QuadMesh_health_bar")
+surface_material_override/0 = SubResource("StandardMaterial3D_health_back")
+
+[node name="HealthBarFill" type="MeshInstance3D" parent="HealthBarPivot"]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0.01)
+mesh = SubResource("QuadMesh_health_bar")
+surface_material_override/0 = SubResource("StandardMaterial3D_health_fill")
