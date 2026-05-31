@@ -1,0 +1,82 @@
+[gd_scene load_steps=12 format=3 uid="uid://tj3xku70n7v8"]
+
+[ext_resource type="Script" path="res://scripts/environment/HostileEnemy.gd" id="1_v0ahb"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_enemy_body"]
+radius = 0.52
+height = 1.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_enemy_body"]
+top_radius = 0.42
+bottom_radius = 0.58
+height = 1.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_enemy_head"]
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy"]
+albedo_color = Color(0.945098, 0.658824, 0.215686, 1)
+emission_enabled = true
+emission = Color(1, 0.35, 0.12, 1)
+emission_energy_multiplier = 0.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy_health_back"]
+albedo_color = Color(0.2, 0.12, 0.08, 0.92)
+transparency = 1
+shading_mode = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy_health_fill"]
+albedo_color = Color(1, 0.88, 0.32, 0.95)
+transparency = 1
+shading_mode = 0
+
+[sub_resource type="QuadMesh" id="QuadMesh_enemy_health_bar"]
+size = Vector2(1, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_enemy_hitbox_debug"]
+albedo_color = Color(1, 0.45, 0.14, 0.18)
+transparency = 1
+shading_mode = 0
+emission_enabled = true
+emission = Color(1, 0.45, 0.14, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_enemy_hitbox_debug"]
+top_radius = 0.52
+bottom_radius = 0.52
+height = 1.6
+
+[node name="HostileEnemy" type="CharacterBody3D"]
+script = ExtResource("1_v0ahb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CylinderShape3D_enemy_body")
+
+[node name="DebugHitbox" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("CylinderMesh_enemy_hitbox_debug")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy_hitbox_debug")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, 0.939693, 0, 0.78, 0)
+mesh = SubResource("CylinderMesh_enemy_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
+
+[node name="HeadMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, 0.939693, 0, 1.55, 0)
+mesh = SubResource("SphereMesh_enemy_head")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy")
+
+[node name="HealthBarPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.15, 0)
+
+[node name="HealthBarBack" type="MeshInstance3D" parent="HealthBarPivot"]
+mesh = SubResource("QuadMesh_enemy_health_bar")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy_health_back")
+
+[node name="HealthBarFill" type="MeshInstance3D" parent="HealthBarPivot"]
+transform = Transform3D(0.9, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0.01)
+mesh = SubResource("QuadMesh_enemy_health_bar")
+surface_material_override/0 = SubResource("StandardMaterial3D_enemy_health_fill")

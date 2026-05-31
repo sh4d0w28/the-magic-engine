@@ -93,13 +93,14 @@ func _handle_collision(hit_result: Dictionary) -> void:
 
 
 func _apply_splash_damage(impact_position: Vector3, direct_collider: Object) -> void:
-	for node in get_tree().get_nodes_in_group("target_dummy"):
-		if node == direct_collider or not node.has_method("receive_fire_hit"):
-			continue
-		var splash_offset: Vector3 = node.global_position - impact_position
-		splash_offset.y = 0.0
-		if splash_offset.length() <= _splash_radius:
-			node.receive_fire_hit(impact_position)
+	for group_name in ["target_dummy", "hostile_enemy"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if node == direct_collider or not node.has_method("receive_fire_hit"):
+				continue
+			var splash_offset: Vector3 = node.global_position - impact_position
+			splash_offset.y = 0.0
+			if splash_offset.length() <= _splash_radius:
+				node.receive_fire_hit(impact_position)
 
 
 func _update_debug_radius() -> void:

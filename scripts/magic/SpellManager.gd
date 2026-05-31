@@ -26,6 +26,8 @@ func _initialize_combat_feedback() -> void:
 	get_tree().node_added.connect(_on_node_added)
 	for node in get_tree().get_nodes_in_group("target_dummy"):
 		_connect_target_dummy(node)
+	for node in get_tree().get_nodes_in_group("hostile_enemy"):
+		_connect_hostile_enemy(node)
 	_hud.set_score(_score)
 
 
@@ -93,6 +95,8 @@ func _spawn_backlash(request: Dictionary) -> void:
 func _on_node_added(node: Node) -> void:
 	if node.has_signal("dummy_damaged") or node.has_signal("dummy_destroyed"):
 		_connect_target_dummy(node)
+	if node.has_signal("enemy_damaged") or node.has_signal("enemy_destroyed"):
+		_connect_hostile_enemy(node)
 
 
 func _connect_target_dummy(node: Node) -> void:
@@ -100,6 +104,13 @@ func _connect_target_dummy(node: Node) -> void:
 		node.dummy_damaged.connect(_on_dummy_damaged)
 	if node.has_signal("dummy_destroyed") and not node.dummy_destroyed.is_connected(_on_dummy_destroyed):
 		node.dummy_destroyed.connect(_on_dummy_destroyed)
+
+
+func _connect_hostile_enemy(node: Node) -> void:
+	if node.has_signal("enemy_damaged") and not node.enemy_damaged.is_connected(_on_enemy_damaged):
+		node.enemy_damaged.connect(_on_enemy_damaged)
+	if node.has_signal("enemy_destroyed") and not node.enemy_destroyed.is_connected(_on_enemy_destroyed):
+		node.enemy_destroyed.connect(_on_enemy_destroyed)
 
 
 func _on_dummy_damaged(current_health: int, max_health: int) -> void:
@@ -110,3 +121,13 @@ func _on_dummy_destroyed(score_value: int) -> void:
 	_score += score_value
 	_hud.set_score(_score)
 	_hud.set_combat_feed("Dummy destroyed. Score +%d" % score_value)
+
+
+func _on_enemy_damaged(current_health: int, max_health: int) -> void:
+	_hud.set_combat_feed("Hostile hit: %d/%d health remaining" % [current_health, max_health])
+
+
+func _on_enemy_destroyed(score_value: int) -> void:
+	_score += score_value
+	_hud.set_score(_score)
+	_hud.set_combat_feed("Hostile destroyed. Score +%d" % score_value)

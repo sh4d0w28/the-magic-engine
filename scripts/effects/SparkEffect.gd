@@ -24,9 +24,10 @@ func _process(delta: float) -> void:
 
 
 func _apply_interactions() -> void:
-	for node in get_tree().get_nodes_in_group("target_dummy"):
-		if node.global_position.distance_to(global_position) <= interaction_radius and node.has_method("receive_spark_hit"):
-			node.receive_spark_hit()
+	for group_name in ["target_dummy", "hostile_enemy"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if node.global_position.distance_to(global_position) <= interaction_radius and node.has_method("receive_spark_hit"):
+				node.receive_spark_hit()
 
 	for node in get_tree().get_nodes_in_group("wood_pile"):
 		if node.global_position.distance_to(global_position) <= interaction_radius and node.has_method("receive_spark_ignite"):

@@ -40,6 +40,7 @@ func _run() -> void:
 	var active_spells: Node3D = spell_manager.get_node("ActiveSpells")
 	var wood_piles: Node = world.get_node("Environment/WoodPiles")
 	var target_dummies: Node = world.get_node("Environment/TargetDummies")
+	var hostiles: Node = world.get_node("Environment/Hostiles")
 	var voice_power_tracker: Node = input_controller.get_node("VoicePowerTracker")
 	var diagram_recognizer: Node = input_controller.get_node("DiagramRecognizer")
 
@@ -145,6 +146,7 @@ func _run() -> void:
 
 	_assert(wood_piles.get_child_count() >= 1, "WoodPile exists")
 	_assert(target_dummies.get_child_count() >= 1, "TargetDummy exists")
+	_assert(hostiles.get_child_count() >= 1, "Hostile enemy exists")
 	var wood_before: float = wood_piles.get_child(0).fuel_amount
 	var bonfire_scene: PackedScene = load("res://scenes/effects/Bonfire.tscn")
 	var bonfire_near: Node3D = bonfire_scene.instantiate()
@@ -166,7 +168,9 @@ func _run() -> void:
 	await process_frame
 
 	var fireball_scene: PackedScene = load("res://scenes/effects/Fireball.tscn")
+	var spark_scene: PackedScene = load("res://scenes/effects/SparkEffect.tscn")
 	var target_dummy: StaticBody3D = target_dummies.get_child(0)
+	var hostile_enemy: CharacterBody3D = hostiles.get_child(0)
 	var hit_test_fireball: Node3D = fireball_scene.instantiate()
 	active_spells.add_child(hit_test_fireball)
 	hit_test_fireball.global_position = target_dummy.global_position + Vector3(0.0, 1.0, 4.0)
@@ -186,6 +190,20 @@ func _run() -> void:
 			child.queue_free()
 	await process_frame
 	_assert(scorch_found, "Fireball impact leaves scorch mark")
+
+	var hostile_start_distance: float = hostile_enemy.global_position.distance_to(player.global_position)
+	for index in range(20):
+		hostile_enemy._physics_process(0.1)
+	var hostile_end_distance: float = hostile_enemy.global_position.distance_to(player.global_position)
+	_assert(hostile_end_distance < hostile_start_distance, "Hostile enemy moves toward player")
+
+	var hostile_hit_before: int = hostile_enemy.current_health
+	var hostile_spark: Node3D = spark_scene.instantiate()
+	active_spells.add_child(hostile_spark)
+	hostile_spark.global_position = hostile_enemy.global_position + Vector3(0.0, 0.5, 0.0)
+	hostile_spark._process(0.016)
+	await process_frame
+	_assert(hostile_enemy.current_health < hostile_hit_before, "Spark affects hostile enemy")
 
 	var splash_dummy_scene: PackedScene = load("res://scenes/environment/TargetDummy.tscn")
 	var direct_dummy: StaticBody3D = splash_dummy_scene.instantiate()
@@ -215,7 +233,6 @@ func _run() -> void:
 	world.get_node("Environment/TargetDummies").add_child(spark_dummy)
 	spark_dummy.global_position = Vector3(2.0, 0.0, -4.0)
 	await process_frame
-	var spark_scene: PackedScene = load("res://scenes/effects/SparkEffect.tscn")
 	var test_spark: Node3D = spark_scene.instantiate()
 	active_spells.add_child(test_spark)
 	test_spark.global_position = spark_dummy.global_position + Vector3(0.0, 1.0, 0.0)
