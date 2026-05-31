@@ -8,6 +8,7 @@ signal input_submitted(text: String)
 @onready var _controls_label: Label = $MarginContainer/VBoxContainer/ControlsLabel
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
+@onready var _aim_reticle: Control = $AimReticle
 
 
 func _ready() -> void:
@@ -18,6 +19,10 @@ func _ready() -> void:
 		player.health_mana_changed.connect(set_health_and_mana)
 		set_health_and_mana(player.get_health(), player.get_mana())
 	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
+
+
+func _process(_delta: float) -> void:
+	_update_aim_reticle()
 
 
 func set_health_and_mana(health: float, mana: float) -> void:
@@ -37,11 +42,13 @@ func open_input() -> void:
 	_input_line.show()
 	_input_line.grab_focus()
 	_input_line.clear()
+	_aim_reticle.hide()
 
 
 func close_input() -> void:
 	_input_line.hide()
 	_input_line.release_focus()
+	_aim_reticle.show()
 
 
 func is_input_open() -> bool:
@@ -54,3 +61,11 @@ func get_current_input() -> String:
 
 func _on_input_submitted(text: String) -> void:
 	input_submitted.emit(text)
+
+
+func _update_aim_reticle() -> void:
+	if not _aim_reticle.visible:
+		return
+
+	var mouse_position: Vector2 = get_viewport().get_mouse_position()
+	_aim_reticle.position = mouse_position
