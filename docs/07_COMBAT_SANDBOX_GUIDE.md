@@ -7,6 +7,8 @@ The Phase 1 prototype has progressed beyond isolated milestone checks. The curre
 - typed incantation flow,
 - fire spell targeting,
 - direct hit and splash behavior,
+- hostile chase and contact-damage pressure,
+- player defeat and encounter reset,
 - energy payment and health-overdraw rules,
 - wood fuel interaction,
 - dummy health/destruction feedback,
@@ -30,6 +32,7 @@ The Phase 1 prototype has progressed beyond isolated milestone checks. The curre
 ### Targets and Resources
 
 - destructible target dummies,
+- hostile ember enemies,
 - visible dummy health bars and floating damage numbers,
 - wood piles with visible depletion,
 - bonfire sustain through nearby wood fuel.
@@ -46,9 +49,11 @@ The Phase 1 prototype has progressed beyond isolated milestone checks. The curre
 2. Aim with the screen reticle and verify the ground marker tracks the cursor.
 3. Cast `RAK TOR` into a dummy and confirm direct impact, damage feedback, and destruction.
 4. Cast `RAK TOR` between nearby dummies and confirm splash damage.
-5. Cast `RAK` near a dummy and near a wood pile to verify spark interactions.
-6. Cast `RAK DUM` near wood and far from wood to verify bonfire sustain/extinction.
-7. Toggle `F3` to inspect or hide collision debug overlays.
+5. Let a hostile reach the player and confirm contact damage is applied.
+6. Allow the player to be defeated and confirm the arena resets automatically.
+7. Cast `RAK` near a dummy and near a wood pile to verify spark interactions.
+8. Cast `RAK DUM` near wood and far from wood to verify bonfire sustain/extinction.
+9. Toggle `F3` to inspect or hide collision debug overlays.
 
 ## Validation Commands
 

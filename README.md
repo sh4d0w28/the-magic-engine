@@ -8,6 +8,8 @@ The current state is a playable local combat sandbox in Godot 4.6.3:
 - simulated voice power,
 - simple diagram recognition,
 - target dummies with health, destruction, score, and combat feedback,
+- hostile enemies that chase and pressure the player,
+- player defeat and automatic encounter reset,
 - bonfire fuel gameplay with visible wood depletion,
 - optional collision debug overlays.
 
@@ -56,7 +58,8 @@ Phase 1 is a small local prototype:
 2. Aim using the mouse reticle and ground target marker.
 3. Type `RAK`, `RAK TOR`, or `RAK DUM`.
 4. Hit target dummies to test direct hits, splash, and destruction.
-5. Use bonfires and sparks near wood to test fuel behavior.
+5. Kite hostile enemies and verify contact damage plus reset flow on defeat.
+6. Use bonfires and sparks near wood to test fuel behavior.
 
 ## Validation
 

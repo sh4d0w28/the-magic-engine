@@ -42,6 +42,8 @@ The project has been revised to match the milestone order in the spec. Each mile
 34. `8b65129` - `fix: aim fireballs at target and show hitbox debug`
 35. `b9c30ac` - `fix: use volumetric fireball hits with debug overlays`
 36. `0e7751a` - `feat: add runtime toggle for hitbox debug visuals`
+37. `44559b3` - `feat: add hostile enemy arena pressure`
+38. `25e6861` - `feat: add player defeat and encounter reset`
 
 ## Verification Status
 
@@ -52,4 +54,4 @@ The project has been revised to match the milestone order in the spec. Each mile
 - The acceptance harness passes with:
   - `.\Godot_v4.6.3-stable_win64_console.exe --headless --path . --script res://scripts/tests/AcceptanceRunner.gd`
 - `checklists/ACCEPTANCE_CHECKLIST.md` has been updated to reflect the verified results.
-- The current playable milestone is a local combat sandbox with dummy targets, wood fuel, score feedback, and optional debug hitboxes.
+- The current playable milestone is a local combat sandbox with dummy targets, hostile pressure, player defeat/reset flow, wood fuel, score feedback, and optional debug hitboxes.
