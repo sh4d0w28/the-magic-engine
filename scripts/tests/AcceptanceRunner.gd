@@ -63,6 +63,7 @@ func _run() -> void:
 	energy_system._process(1.0)
 	_assert(energy_system.mana > 50.0, "Mana regenerates")
 	_assert(hud.get_node("MarginContainer/VBoxContainer/ManaLabel").text.contains("55"), "HUD updates mana value")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/ScoreLabel").text.ends_with("0"), "HUD score starts at zero")
 
 	var open_event := InputEventKey.new()
 	open_event.pressed = true
@@ -227,17 +228,25 @@ func _run() -> void:
 
 	var wood_for_spark: Node3D = wood_piles.get_child(0)
 	var wood_fuel_before_spark: float = wood_for_spark.fuel_amount
+	var wood_scale_before: Vector3 = wood_for_spark.get_node("MeshInstance3D").scale
 	var wood_spark: Node3D = spark_scene.instantiate()
 	active_spells.add_child(wood_spark)
 	wood_spark.global_position = wood_for_spark.global_position + Vector3(0.0, 0.5, 0.0)
 	wood_spark._process(0.016)
 	await process_frame
 	_assert(wood_for_spark.fuel_amount < wood_fuel_before_spark, "Spark interacts with wood")
+	_assert(wood_for_spark.get_node("MeshInstance3D").scale.y < wood_scale_before.y, "Wood depletion is visible")
 
 	var destroy_dummy: StaticBody3D = splash_dummy_scene.instantiate()
 	world.get_node("Environment/TargetDummies").add_child(destroy_dummy)
 	destroy_dummy.global_position = Vector3(4.0, 0.0, -4.0)
 	await process_frame
+	var destroy_dummy_body: MeshInstance3D = destroy_dummy.get_node("BodyMesh")
+	var body_color_before: Color = destroy_dummy_body.get_active_material(0).albedo_color
+	destroy_dummy.receive_fire_hit(destroy_dummy.global_position)
+	await process_frame
+	var body_color_after: Color = destroy_dummy_body.get_active_material(0).albedo_color
+	_assert(body_color_after != body_color_before, "Dummy health state is visible")
 	for index in range(3):
 		destroy_dummy.receive_fire_hit(destroy_dummy.global_position)
 	for index in range(30):
@@ -246,6 +255,8 @@ func _run() -> void:
 		destroy_dummy._process(0.016)
 	await process_frame
 	_assert(not is_instance_valid(destroy_dummy) or destroy_dummy.is_queued_for_deletion(), "Target dummy is destroyed at zero health")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/ScoreLabel").text.ends_with("1"), "Destroying dummy increases score")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/CombatFeedLabel").text.contains("Dummy destroyed"), "Combat feed reports dummy destruction")
 
 	var voice_before: float = voice_power_tracker.get_voice_power()
 	Input.action_press("voice_charge")
