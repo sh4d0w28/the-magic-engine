@@ -242,11 +242,20 @@ func _run() -> void:
 	destroy_dummy.global_position = Vector3(4.0, 0.0, -4.0)
 	await process_frame
 	var destroy_dummy_body: MeshInstance3D = destroy_dummy.get_node("BodyMesh")
+	var destroy_dummy_health_fill: MeshInstance3D = destroy_dummy.get_node("HealthBarPivot/HealthBarFill")
 	var body_color_before: Color = destroy_dummy_body.get_active_material(0).albedo_color
+	var health_fill_scale_before: float = destroy_dummy_health_fill.scale.x
 	destroy_dummy.receive_fire_hit(destroy_dummy.global_position)
 	await process_frame
 	var body_color_after: Color = destroy_dummy_body.get_active_material(0).albedo_color
 	_assert(body_color_after != body_color_before, "Dummy health state is visible")
+	_assert(destroy_dummy_health_fill.scale.x < health_fill_scale_before, "Dummy health bar updates on damage")
+	var damage_number_found := false
+	for child in destroy_dummy.get_children():
+		if child is Label3D and child.text.begins_with("-"):
+			damage_number_found = true
+			break
+	_assert(damage_number_found, "Dummy shows floating damage number")
 	for index in range(3):
 		destroy_dummy.receive_fire_hit(destroy_dummy.global_position)
 	for index in range(30):
