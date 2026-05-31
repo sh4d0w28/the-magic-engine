@@ -20,7 +20,7 @@ func _ready() -> void:
 
 
 func submit_typed_incantation(raw_input: String, normalized_input: String) -> void:
-	var diagram_result := _diagram_recognizer.get_diagram_result()
+	var diagram_result: Dictionary = _diagram_recognizer.get_diagram_result()
 	var request := {
 		"caster": _player,
 		"raw_input": raw_input,
@@ -43,7 +43,7 @@ func submit_typed_incantation(raw_input: String, normalized_input: String) -> vo
 
 
 func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
-	var spell_definition := _spell_definitions.get_spell_by_incantation(str(result.get("normalized_input", "")))
+	var spell_definition: Dictionary = _spell_definitions.get_spell_by_incantation(str(result.get("normalized_input", "")))
 	match str(result.get("spell_id", "")):
 		"spark":
 			var spark = _spark_scene.instantiate()

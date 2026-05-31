@@ -1,4 +1,5 @@
 extends Node
+class_name EnergySystem
 
 signal changed(health: float, mana: float)
 
@@ -24,14 +25,14 @@ func _process(delta: float) -> void:
 
 
 func spend_mana(amount: float) -> float:
-	var mana_spent := min(mana, max(amount, 0.0))
+	var mana_spent: float = minf(mana, maxf(amount, 0.0))
 	mana -= mana_spent
 	_emit_changed()
 	return mana_spent
 
 
 func drain_health(amount: float) -> bool:
-	var requested_amount := max(amount, 0.0)
+	var requested_amount: float = maxf(amount, 0.0)
 	if health - requested_amount < 1.0:
 		return false
 
@@ -50,9 +51,9 @@ func is_alive() -> bool:
 
 
 func pay_energy_cost(required_energy: float) -> Dictionary:
-	var target_cost := max(required_energy, 0.0)
-	var mana_spent := min(mana, target_cost)
-	var missing_energy := target_cost - mana_spent
+	var target_cost: float = maxf(required_energy, 0.0)
+	var mana_spent: float = minf(mana, target_cost)
+	var missing_energy: float = target_cost - mana_spent
 
 	if missing_energy > 0.0 and health - missing_energy < 1.0:
 		return {
@@ -66,7 +67,7 @@ func pay_energy_cost(required_energy: float) -> Dictionary:
 	if mana_spent > 0.0:
 		mana -= mana_spent
 
-	var health_spent := 0.0
+	var health_spent: float = 0.0
 	if missing_energy > 0.0:
 		health -= missing_energy
 		health_spent = missing_energy

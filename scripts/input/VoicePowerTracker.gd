@@ -1,4 +1,5 @@
 extends Node
+class_name VoicePowerTracker
 
 signal voice_power_changed(voice_power: float)
 

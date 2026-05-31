@@ -11,6 +11,10 @@ func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
+	call_deferred("_initialize_ui_state")
+
+
+func _initialize_ui_state() -> void:
 	_hud.set_status("Press Enter to type an incantation.")
 	_debug_panel.set_message("Waiting for typed input.")
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())

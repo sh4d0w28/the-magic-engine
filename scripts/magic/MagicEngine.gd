@@ -13,7 +13,7 @@ func execute_request(request: Dictionary) -> Dictionary:
 	if normalized_input.is_empty():
 		normalized_input = _spell_definitions.normalize_incantation(raw_input)
 
-	var spell_definition := _spell_definitions.get_spell_by_incantation(normalized_input)
+	var spell_definition: Dictionary = _spell_definitions.get_spell_by_incantation(normalized_input)
 	if spell_definition.is_empty():
 		return {
 			"success": false,
@@ -31,12 +31,12 @@ func execute_request(request: Dictionary) -> Dictionary:
 	var diagram_type: String = str(request.get("diagram_type", ""))
 	var diagram_accuracy: float = float(request.get("diagram_accuracy", 0.0))
 	var diagram_size: float = float(request.get("diagram_size", 0.0))
-	var voice_power: float = clamp(float(request.get("voice_power", 0.0)), 0.0, 1.0)
+	var voice_power: float = clampf(float(request.get("voice_power", 0.0)), 0.0, 1.0)
 
-	var incantation_score := 1.0
-	var stability := _calculate_stability(spell_definition, incantation_score, diagram_type, diagram_accuracy)
-	var final_power := clamp(1.0 + voice_power + diagram_size, 1.0, 3.0)
-	var final_cost := float(spell_definition.get("base_cost", 0.0)) * final_power
+	var incantation_score: float = 1.0
+	var stability: float = _calculate_stability(spell_definition, incantation_score, diagram_type, diagram_accuracy)
+	var final_power: float = clampf(1.0 + voice_power + diagram_size, 1.0, 3.0)
+	var final_cost: float = float(spell_definition.get("base_cost", 0.0)) * final_power
 
 	if stability < 0.5:
 		return {
@@ -53,7 +53,7 @@ func execute_request(request: Dictionary) -> Dictionary:
 		}
 
 	var caster: Node = request.get("caster")
-	var payment_result := caster.get_energy_system().pay_energy_cost(final_cost)
+	var payment_result: Dictionary = caster.get_energy_system().pay_energy_cost(final_cost)
 	if not payment_result.get("success", false):
 		return {
 			"success": false,
@@ -87,7 +87,7 @@ func _calculate_stability(spell_definition: Dictionary, incantation_score: float
 		return incantation_score
 
 	var required_diagram: String = str(spell_definition.get("diagram", ""))
-	var diagram_score := diagram_accuracy
+	var diagram_score: float = diagram_accuracy
 	if diagram_type != required_diagram:
 		diagram_score *= 0.25
 

@@ -1,10 +1,11 @@
 extends Node
+class_name DiagramRecognizer
 
 signal diagram_changed(diagram_result: Dictionary)
 
 var _is_drawing := false
 var _points: Array[Vector2] = []
-var _last_result := {
+var _last_result: Dictionary = {
 	"shape_type": "none",
 	"accuracy": 0.0,
 	"size": 0.0,
@@ -66,11 +67,11 @@ func _classify_points() -> Dictionary:
 		center += point
 
 	center /= float(_points.size())
-	var width := max_x - min_x
-	var height := max_y - min_y
-	var max_dimension := max(width, height)
-	var size := clamp(max_dimension / 300.0, 0.0, 1.0)
-	var closed := _points[0].distance_to(_points[_points.size() - 1]) <= max(20.0, max_dimension * 0.25)
+	var width: float = max_x - min_x
+	var height: float = max_y - min_y
+	var max_dimension: float = maxf(width, height)
+	var size: float = clampf(max_dimension / 300.0, 0.0, 1.0)
+	var closed: bool = _points[0].distance_to(_points[_points.size() - 1]) <= maxf(20.0, max_dimension * 0.25)
 
 	var radius_sum := 0.0
 	for point in _points:
@@ -80,7 +81,7 @@ func _classify_points() -> Dictionary:
 	var deviation_sum := 0.0
 	var central_point_count := 0
 	for point in _points:
-		var radius := point.distance_to(center)
+		var radius: float = point.distance_to(center)
 		deviation_sum += abs(radius - average_radius)
 		if radius <= average_radius * 0.35:
 			central_point_count += 1
@@ -88,8 +89,8 @@ func _classify_points() -> Dictionary:
 	if average_radius > 0.0:
 		radius_deviation = deviation_sum / float(_points.size()) / average_radius
 
-	var corner_count := _estimate_corner_count()
-	var central_ratio := float(central_point_count) / float(_points.size())
+	var corner_count: int = _estimate_corner_count()
+	var central_ratio: float = float(central_point_count) / float(_points.size())
 
 	if closed and central_ratio >= 0.12 and radius_deviation <= 0.55:
 		return {
@@ -129,12 +130,12 @@ func _estimate_corner_count() -> int:
 
 	var corner_count := 0
 	for index in range(2, _points.size() - 2, 3):
-		var previous_direction := (_points[index - 1] - _points[index - 2]).normalized()
-		var next_direction := (_points[index + 1] - _points[index]).normalized()
+		var previous_direction: Vector2 = (_points[index - 1] - _points[index - 2]).normalized()
+		var next_direction: Vector2 = (_points[index + 1] - _points[index]).normalized()
 		if previous_direction == Vector2.ZERO or next_direction == Vector2.ZERO:
 			continue
 
-		var turn_angle := abs(previous_direction.angle_to(next_direction))
+		var turn_angle: float = absf(previous_direction.angle_to(next_direction))
 		if turn_angle >= deg_to_rad(35.0):
 			corner_count += 1
 
