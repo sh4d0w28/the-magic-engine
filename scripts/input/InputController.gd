@@ -3,12 +3,15 @@ extends Node
 @onready var _hud: Control = $"../UI/HUD"
 @onready var _debug_panel: PanelContainer = $"../UI/DebugPanel"
 @onready var _spell_manager: Node = $"../SpellManager"
+@onready var _voice_power_tracker: Node = $VoicePowerTracker
 
 
 func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
+	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_hud.set_status("Press Enter to type an incantation.")
 	_debug_panel.set_message("Waiting for typed input.")
+	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -43,3 +46,8 @@ func _on_input_submitted(raw_input: String) -> void:
 	_debug_panel.set_message("Normalized typed input submitted.")
 	if _spell_manager.has_method("submit_typed_incantation"):
 		_spell_manager.submit_typed_incantation(raw_input, normalized_input)
+
+
+func _on_voice_power_changed(voice_power: float) -> void:
+	_hud.set_voice_power(voice_power)
+	_debug_panel.set_voice_power(voice_power)

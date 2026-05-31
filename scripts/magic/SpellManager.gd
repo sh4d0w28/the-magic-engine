@@ -11,6 +11,7 @@ var _backlash_scene := preload("res://scenes/effects/BacklashEffect.tscn")
 @onready var _hud: Control = $"../UI/HUD"
 @onready var _debug_panel: PanelContainer = $"../UI/DebugPanel"
 @onready var _active_spells: Node3D = $ActiveSpells
+@onready var _voice_power_tracker: Node = $"../InputController/VoicePowerTracker"
 
 
 func _ready() -> void:
@@ -23,13 +24,14 @@ func submit_typed_incantation(raw_input: String, normalized_input: String) -> vo
 		"raw_input": raw_input,
 		"normalized_input": normalized_input,
 		"input_type": "typed",
-		"voice_power": 0.0,
+		"voice_power": _voice_power_tracker.get_voice_power(),
 		"diagram_type": "none",
 		"diagram_accuracy": 0.0,
 		"diagram_size": 0.0,
 		"target_position": _player.get_target_position()
 	}
 	var result := _magic_engine.execute_request(request)
+	_voice_power_tracker.consume_voice_power()
 	_debug_panel.set_spell_result(result)
 	_hud.set_status(str(result.get("message", "")))
 	if result.get("success", false):
