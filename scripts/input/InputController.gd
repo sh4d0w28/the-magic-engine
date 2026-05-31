@@ -4,14 +4,17 @@ extends Node
 @onready var _debug_panel: PanelContainer = $"../UI/DebugPanel"
 @onready var _spell_manager: Node = $"../SpellManager"
 @onready var _voice_power_tracker: Node = $VoicePowerTracker
+@onready var _diagram_recognizer: Node = $DiagramRecognizer
 
 
 func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
+	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
 	_hud.set_status("Press Enter to type an incantation.")
 	_debug_panel.set_message("Waiting for typed input.")
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
+	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -51,3 +54,7 @@ func _on_input_submitted(raw_input: String) -> void:
 func _on_voice_power_changed(voice_power: float) -> void:
 	_hud.set_voice_power(voice_power)
 	_debug_panel.set_voice_power(voice_power)
+
+
+func _on_diagram_changed(diagram_result: Dictionary) -> void:
+	_debug_panel.set_diagram_result(diagram_result)

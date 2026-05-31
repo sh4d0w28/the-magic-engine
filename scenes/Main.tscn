@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/magic/SpellManager.gd" id="5_4a5sh"]
 [ext_resource type="PackedScene" path="res://scenes/environment/WoodPile.tscn" id="6_4s32g"]
 [ext_resource type="Script" path="res://scripts/input/VoicePowerTracker.gd" id="7_7lgpd"]
+[ext_resource type="Script" path="res://scripts/input/DiagramRecognizer.gd" id="8_jdli3"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(30, 1, 30)
@@ -58,6 +59,9 @@ script = ExtResource("4_7yyh0")
 
 [node name="VoicePowerTracker" type="Node" parent="InputController"]
 script = ExtResource("7_7lgpd")
+
+[node name="DiagramRecognizer" type="Node" parent="InputController"]
+script = ExtResource("8_jdli3")
 
 [node name="UI" type="CanvasLayer" parent="."]
 

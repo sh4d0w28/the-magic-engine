@@ -12,6 +12,7 @@ var _backlash_scene := preload("res://scenes/effects/BacklashEffect.tscn")
 @onready var _debug_panel: PanelContainer = $"../UI/DebugPanel"
 @onready var _active_spells: Node3D = $ActiveSpells
 @onready var _voice_power_tracker: Node = $"../InputController/VoicePowerTracker"
+@onready var _diagram_recognizer: Node = $"../InputController/DiagramRecognizer"
 
 
 func _ready() -> void:
@@ -19,15 +20,16 @@ func _ready() -> void:
 
 
 func submit_typed_incantation(raw_input: String, normalized_input: String) -> void:
+	var diagram_result := _diagram_recognizer.get_diagram_result()
 	var request := {
 		"caster": _player,
 		"raw_input": raw_input,
 		"normalized_input": normalized_input,
 		"input_type": "typed",
 		"voice_power": _voice_power_tracker.get_voice_power(),
-		"diagram_type": "none",
-		"diagram_accuracy": 0.0,
-		"diagram_size": 0.0,
+		"diagram_type": diagram_result.get("shape_type", "none"),
+		"diagram_accuracy": diagram_result.get("accuracy", 0.0),
+		"diagram_size": diagram_result.get("size", 0.0),
 		"target_position": _player.get_target_position()
 	}
 	var result := _magic_engine.execute_request(request)
