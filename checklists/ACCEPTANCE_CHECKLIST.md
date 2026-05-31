@@ -1,54 +1,54 @@
 # Acceptance Checklist
 
 ## Milestone 1
-- [ ] Project opens in Godot 4.
-- [ ] Main scene loads.
-- [ ] Player cube appears.
-- [ ] Ground appears.
-- [ ] WASD moves player.
-- [ ] Camera follows player.
+- [x] Project opens in Godot 4.
+- [x] Main scene loads.
+- [x] Player cube appears.
+- [x] Ground appears.
+- [x] WASD moves player.
+- [x] Camera follows player.
 
 ## Milestone 2
-- [ ] Health starts at 100.
-- [ ] Mana starts at 100.
-- [ ] Mana regenerates.
-- [ ] HUD updates values.
+- [x] Health starts at 100.
+- [x] Mana starts at 100.
+- [x] Mana regenerates.
+- [x] HUD updates values.
 
 ## Milestone 3
-- [ ] Enter opens input mode.
-- [ ] Text can be typed.
-- [ ] Enter submits phrase.
-- [ ] Escape cancels input.
-- [ ] Debug panel shows normalized phrase.
+- [x] Enter opens input mode.
+- [x] Text can be typed.
+- [x] Enter submits phrase.
+- [x] Escape cancels input.
+- [x] Debug panel shows normalized phrase.
 
 ## Milestone 4
-- [ ] RAK maps to Spark.
-- [ ] RAK TOR maps to Fireball.
-- [ ] RAK DUM maps to Bonfire.
-- [ ] Unknown phrase fails.
-- [ ] Mana is spent.
-- [ ] Health is drained if mana is insufficient.
-- [ ] Spell fails if health cannot pay.
+- [x] RAK maps to Spark.
+- [x] RAK TOR maps to Fireball.
+- [x] RAK DUM maps to Bonfire.
+- [x] Unknown phrase fails.
+- [x] Mana is spent.
+- [x] Health is drained if mana is insufficient.
+- [x] Spell fails if health cannot pay.
 
 ## Milestone 5
-- [ ] Spark visual appears and disappears.
-- [ ] Fireball moves forward.
-- [ ] Bonfire appears.
+- [x] Spark visual appears and disappears.
+- [x] Fireball moves forward.
+- [x] Bonfire appears.
 
 ## Milestone 6
-- [ ] WoodPile exists.
-- [ ] Bonfire near wood stays alive.
-- [ ] Bonfire consumes wood.
-- [ ] Bonfire without wood dies after 3 seconds.
+- [x] WoodPile exists.
+- [x] Bonfire near wood stays alive.
+- [x] Bonfire consumes wood.
+- [x] Bonfire without wood dies after 3 seconds.
 
 ## Milestone 7
-- [ ] Holding V increases voice_power.
-- [ ] voice_power affects final_power.
-- [ ] final_power affects final_cost.
+- [x] Holding V increases voice_power.
+- [x] voice_power affects final_power.
+- [x] final_power affects final_cost.
 
 ## Milestone 8
-- [ ] Drawing records points.
-- [ ] Circle is detected.
-- [ ] Triangle is detected.
-- [ ] Diagram size affects power.
-- [ ] Wrong diagram reduces stability.
+- [x] Drawing records points.
+- [x] Circle is detected.
+- [x] Triangle is detected.
+- [x] Diagram size affects power.
+- [x] Wrong diagram reduces stability.
