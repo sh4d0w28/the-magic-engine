@@ -46,6 +46,11 @@ func _process(delta: float) -> void:
 		queue_free()
 
 
+func _ready() -> void:
+	add_to_group("debug_hitbox_owner")
+	set_debug_hitbox_visible(bool(get_tree().get_meta("show_debug_hitboxes", false)))
+
+
 func _find_collision(sample_position: Vector3) -> Dictionary:
 	var collision_sphere := SphereShape3D.new()
 	collision_sphere.radius = _direct_hit_radius
@@ -101,3 +106,10 @@ func _update_debug_radius() -> void:
 	if _debug_splash_radius != null:
 		var radius_scale := maxf(_splash_radius / 1.8, 0.001)
 		_debug_splash_radius.scale = Vector3.ONE * radius_scale
+
+
+func set_debug_hitbox_visible(is_visible: bool) -> void:
+	if _debug_direct_hit != null:
+		_debug_direct_hit.visible = is_visible
+	if _debug_splash_radius != null:
+		_debug_splash_radius.visible = is_visible

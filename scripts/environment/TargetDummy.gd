@@ -25,11 +25,12 @@ var is_destroyed := false
 
 func _ready() -> void:
 	add_to_group("target_dummy")
+	add_to_group("debug_hitbox_owner")
 	_body_material = _duplicate_material(_body_mesh)
 	_head_material = _duplicate_material(_head_mesh)
 	current_health = max_health
 	_update_health_visuals()
-	_debug_hitbox.visible = true
+	set_debug_hitbox_visible(bool(get_tree().get_meta("show_debug_hitboxes", false)))
 
 
 func _process(delta: float) -> void:
@@ -132,3 +133,8 @@ func _spawn_damage_number(amount: int) -> void:
 	tween.parallel().tween_property(label, "position:y", label.position.y + 0.8, 0.45)
 	tween.parallel().tween_property(label, "modulate:a", 0.0, 0.45)
 	tween.finished.connect(label.queue_free)
+
+
+func set_debug_hitbox_visible(is_visible: bool) -> void:
+	if _debug_hitbox != null:
+		_debug_hitbox.visible = is_visible

@@ -11,6 +11,7 @@ func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
+	get_tree().set_meta("show_debug_hitboxes", false)
 	call_deferred("_initialize_ui_state")
 
 
@@ -32,6 +33,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_hud.close_input()
 			_hud.set_status("Input cancelled.")
 			_debug_panel.set_message("Input cancelled.")
+			get_viewport().set_input_as_handled()
+		elif event.is_action_pressed("toggle_debug_hitboxes"):
+			_toggle_debug_hitboxes()
 			get_viewport().set_input_as_handled()
 
 
@@ -62,3 +66,13 @@ func _on_voice_power_changed(voice_power: float) -> void:
 
 func _on_diagram_changed(diagram_result: Dictionary) -> void:
 	_debug_panel.set_diagram_result(diagram_result)
+
+
+func _toggle_debug_hitboxes() -> void:
+	var show_debug_hitboxes: bool = not bool(get_tree().get_meta("show_debug_hitboxes", false))
+	get_tree().set_meta("show_debug_hitboxes", show_debug_hitboxes)
+	for node in get_tree().get_nodes_in_group("debug_hitbox_owner"):
+		if node.has_method("set_debug_hitbox_visible"):
+			node.set_debug_hitbox_visible(show_debug_hitboxes)
+	_hud.set_status("Debug hitboxes: %s" % ("On" if show_debug_hitboxes else "Off"))
+	_debug_panel.set_message("Debug hitboxes %s." % ("enabled" if show_debug_hitboxes else "disabled"))
