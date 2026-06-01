@@ -42,6 +42,7 @@ func _run() -> void:
 	var target_dummies: Node = world.get_node("Environment/TargetDummies")
 	var hostiles: Node = world.get_node("Environment/Hostiles")
 	var voice_power_tracker: Node = input_controller.get_node("VoicePowerTracker")
+	var voice_incantation_recognizer: Node = input_controller.get_node("VoiceIncantationRecognizer")
 	var diagram_recognizer: Node = input_controller.get_node("DiagramRecognizer")
 
 	_assert(main != null, "Main scene instantiates")
@@ -89,6 +90,16 @@ func _run() -> void:
 	escape_event.keycode = KEY_ESCAPE
 	input_controller._unhandled_input(escape_event)
 	_assert(not hud.is_input_open(), "Escape cancels input")
+
+	energy_system.mana = 100.0
+	voice_incantation_recognizer.simulate_recognition("rock tore", "RAK TOR", 0.88)
+	await process_frame
+	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/RawInputLabel").text.ends_with("rock tore"), "Voice recognition updates raw input")
+	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/NormalizedInputLabel").text.ends_with("RAK TOR"), "Voice recognition normalizes incantation")
+	_assert(active_spells.get_child_count() == 1 and active_spells.get_child(0).name == "Fireball", "Voice recognition can cast fireball")
+	for child in active_spells.get_children():
+		child.queue_free()
+	await process_frame
 
 	# Milestone 4 and 5
 	energy_system.mana = 100.0

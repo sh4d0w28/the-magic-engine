@@ -88,6 +88,8 @@ func restore_to_full() -> void:
 
 
 func reset_to_transform(respawn_transform: Transform3D) -> void:
+	global_position = respawn_transform.origin
+	global_basis = respawn_transform.basis
 	transform = respawn_transform
 	velocity = Vector3.ZERO
 

@@ -22,6 +22,7 @@ func _ready() -> void:
 		set_health_and_mana(player.get_health(), player.get_mana())
 	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
 	_combat_feed_label.modulate = Color(1.0, 0.9, 0.7, 0.95)
+	_controls_label.text = "Move: WASD  Camera: Hold LMB + Mouse  Type: Enter  Speak: M  Voice Power: Hold V  Diagram: Hold RMB  Debug: F3"
 
 
 func _process(_delta: float) -> void:

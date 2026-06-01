@@ -31,13 +31,13 @@ func _initialize_combat_feedback() -> void:
 	_hud.set_score(_score)
 
 
-func submit_typed_incantation(raw_input: String, normalized_input: String) -> void:
+func submit_incantation(raw_input: String, normalized_input: String, input_type: String = "typed") -> void:
 	var diagram_result: Dictionary = _diagram_recognizer.get_diagram_result()
 	var request := {
 		"caster": _player,
 		"raw_input": raw_input,
 		"normalized_input": normalized_input,
-		"input_type": "typed",
+		"input_type": input_type,
 		"voice_power": _voice_power_tracker.get_voice_power(),
 		"diagram_type": diagram_result.get("shape_type", "none"),
 		"diagram_accuracy": diagram_result.get("accuracy", 0.0),
@@ -52,6 +52,14 @@ func submit_typed_incantation(raw_input: String, normalized_input: String) -> vo
 		_spawn_success_effect(result, request)
 	elif str(result.get("message", "")).contains("Not enough mana or health"):
 		_spawn_backlash(request)
+
+
+func submit_typed_incantation(raw_input: String, normalized_input: String) -> void:
+	submit_incantation(raw_input, normalized_input, "typed")
+
+
+func submit_voice_incantation(raw_input: String, normalized_input: String) -> void:
+	submit_incantation(raw_input, normalized_input, "voice")
 
 
 func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:

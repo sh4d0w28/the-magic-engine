@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/magic/SpellManager.gd" id="5_4a5sh"]
 [ext_resource type="PackedScene" path="res://scenes/environment/WoodPile.tscn" id="6_4s32g"]
 [ext_resource type="Script" path="res://scripts/input/VoicePowerTracker.gd" id="7_7lgpd"]
+[ext_resource type="Script" path="res://scripts/input/VoiceIncantationRecognizer.gd" id="8_jo3an"]
 [ext_resource type="Script" path="res://scripts/input/DiagramRecognizer.gd" id="8_jdli3"]
 [ext_resource type="PackedScene" path="res://scenes/effects/TargetIndicator.tscn" id="9_dq4vf"]
 [ext_resource type="PackedScene" path="res://scenes/environment/TargetDummy.tscn" id="10_u2gkf"]
@@ -79,6 +80,9 @@ script = ExtResource("4_7yyh0")
 
 [node name="VoicePowerTracker" type="Node" parent="InputController"]
 script = ExtResource("7_7lgpd")
+
+[node name="VoiceIncantationRecognizer" type="Node" parent="InputController"]
+script = ExtResource("8_jo3an")
 
 [node name="DiagramRecognizer" type="Node" parent="InputController"]
 script = ExtResource("8_jdli3")
