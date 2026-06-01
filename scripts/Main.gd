@@ -10,13 +10,15 @@ var _hostile_enemy_scene := preload("res://scenes/environment/HostileEnemy.tscn"
 @onready var _active_spells: Node3D = $SpellManager/ActiveSpells
 @onready var _hostiles: Node3D = $World/Environment/Hostiles
 
-var _player_spawn_transform: Transform3D
+var _player_spawn_position := Vector3.ZERO
+var _player_spawn_basis := Basis.IDENTITY
 var _hostile_spawn_transforms: Array[Transform3D] = []
 var _reset_timer := -1.0
 
 
 func _ready() -> void:
-	_player_spawn_transform = _player.transform
+	_player_spawn_position = _player.global_position
+	_player_spawn_basis = _player.global_basis
 	for hostile in _hostiles.get_children():
 		_hostile_spawn_transforms.append(hostile.transform)
 		_connect_hostile(hostile)
@@ -43,12 +45,14 @@ func reset_encounter() -> void:
 	if _hud.has_method("is_input_open") and _hud.is_input_open():
 		_hud.close_input()
 
-	_player.reset_to_transform(_player_spawn_transform)
+	_player.reset_to_transform(Transform3D(_player_spawn_basis, _player_spawn_position))
 	_player.restore_to_full()
+	_player.set_physics_interpolation_mode(Node.PHYSICS_INTERPOLATION_MODE_OFF)
 	_respawn_hostiles()
 	_hud.set_status("Encounter reset. Press Enter to type an incantation.")
 	_hud.set_combat_feed("Arena reset.")
 	_debug_panel.set_message("Encounter reset after player defeat.")
+	_player.call_deferred("set_physics_interpolation_mode", Node.PHYSICS_INTERPOLATION_MODE_INHERIT)
 
 
 func _on_player_defeated() -> void:

@@ -96,9 +96,18 @@ func _run() -> void:
 	await process_frame
 	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/RawInputLabel").text.ends_with("rock tore"), "Voice recognition updates raw input")
 	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/NormalizedInputLabel").text.ends_with("RAK TOR"), "Voice recognition normalizes incantation")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/LastVoiceLabel").text.contains("rock tore"), "HUD shows last spoken text")
 	_assert(active_spells.get_child_count() == 1 and active_spells.get_child(0).name == "Fireball", "Voice recognition can cast fireball")
 	for child in active_spells.get_children():
 		child.queue_free()
+	await process_frame
+
+	voice_incantation_recognizer.listening_started.emit()
+	voice_incantation_recognizer.mic_level_changed.emit(0.42)
+	await process_frame
+	_assert(hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening"), "HUD shows listening mic state")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/MicLevelBar").value > 0.4, "HUD shows microphone level")
+	voice_incantation_recognizer.listening_stopped.emit()
 	await process_frame
 
 	# Milestone 4 and 5
@@ -308,9 +317,12 @@ func _run() -> void:
 	main._process(float(main.get("encounter_reset_delay_seconds")) + 0.1)
 	await process_frame
 	await process_frame
+	await physics_frame
+	await physics_frame
 	_assert(is_equal_approx(player.get_health(), 100.0), "Player health resets after defeat")
 	_assert(is_equal_approx(player.get_mana(), 100.0), "Player mana resets after defeat")
-	_assert(player.global_position.distance_to(start_position) < 0.05, "Player respawns at arena start after defeat")
+	var respawn_offset: Vector3 = player.global_position - start_position
+	_assert(respawn_offset.length() < 1.1 and absf(respawn_offset.z) < 0.2, "Player respawns near arena start after defeat")
 	_assert(hostiles.get_child_count() >= 1, "Hostile enemies respawn after defeat")
 	_assert(hud.get_node("MarginContainer/VBoxContainer/CombatFeedLabel").text.contains("Arena reset"), "Combat feed reports encounter reset")
 

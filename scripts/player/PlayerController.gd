@@ -88,10 +88,16 @@ func restore_to_full() -> void:
 
 
 func reset_to_transform(respawn_transform: Transform3D) -> void:
-	global_position = respawn_transform.origin
-	global_basis = respawn_transform.basis
-	transform = respawn_transform
 	velocity = Vector3.ZERO
+	PhysicsServer3D.body_set_state(get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, respawn_transform)
+	global_transform = respawn_transform
+	call_deferred("_apply_respawn_transform", respawn_transform)
+
+
+func _apply_respawn_transform(respawn_transform: Transform3D) -> void:
+	velocity = Vector3.ZERO
+	PhysicsServer3D.body_set_state(get_rid(), PhysicsServer3D.BODY_STATE_TRANSFORM, respawn_transform)
+	global_transform = respawn_transform
 
 
 func is_alive() -> bool:

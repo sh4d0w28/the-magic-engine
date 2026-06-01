@@ -8,6 +8,9 @@ signal input_submitted(text: String)
 @onready var _status_label: Label = $MarginContainer/VBoxContainer/StatusLabel
 @onready var _controls_label: Label = $MarginContainer/VBoxContainer/ControlsLabel
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
+@onready var _mic_status_label: Label = $MarginContainer/VBoxContainer/MicStatusLabel
+@onready var _mic_level_bar: ProgressBar = $MarginContainer/VBoxContainer/MicLevelBar
+@onready var _last_voice_label: Label = $MarginContainer/VBoxContainer/LastVoiceLabel
 @onready var _combat_feed_label: Label = $MarginContainer/VBoxContainer/CombatFeedLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 @onready var _aim_reticle: Control = $AimReticle
@@ -40,6 +43,21 @@ func set_status(message: String) -> void:
 
 func set_voice_power(voice_power: float) -> void:
 	_voice_power_label.text = "Voice Power: %.2f" % voice_power
+
+
+func set_mic_listening(is_listening: bool) -> void:
+	_mic_status_label.text = "Mic: %s" % ("Listening..." if is_listening else "Idle")
+
+
+func set_mic_level(level: float) -> void:
+	_mic_level_bar.value = clampf(level, 0.0, 1.0)
+
+
+func set_last_voice_text(raw_text: String, normalized_input: String) -> void:
+	if raw_text.is_empty():
+		_last_voice_label.text = "Last Voice: -"
+		return
+	_last_voice_label.text = "Last Voice: %s -> %s" % [raw_text, normalized_input]
 
 
 func set_score(score: int) -> void:

@@ -50,6 +50,22 @@ text = "Move: WASD  Camera: Hold LMB + Mouse  Cast: Enter  Voice: Hold V  Diagra
 layout_mode = 2
 text = "Voice Power: 0.00"
 
+[node name="MicStatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Mic: Idle"
+
+[node name="MicLevelBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(220, 12)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.0
+show_percentage = false
+
+[node name="LastVoiceLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Last Voice: -"
+
 [node name="CombatFeedLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Combat: Waiting for first hit"

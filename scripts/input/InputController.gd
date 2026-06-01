@@ -12,6 +12,9 @@ func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_voice_incantation_recognizer.listening_started.connect(_on_voice_listening_started)
+	_voice_incantation_recognizer.listening_stopped.connect(_on_voice_listening_stopped)
+	_voice_incantation_recognizer.mic_level_changed.connect(_on_voice_mic_level_changed)
+	_voice_incantation_recognizer.transcript_updated.connect(_on_voice_transcript_updated)
 	_voice_incantation_recognizer.recognition_completed.connect(_on_voice_recognition_completed)
 	_voice_incantation_recognizer.recognition_failed.connect(_on_voice_recognition_failed)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
@@ -22,6 +25,8 @@ func _ready() -> void:
 func _initialize_ui_state() -> void:
 	_hud.set_status("Press Enter to type or M to speak an incantation.")
 	_debug_panel.set_message("Waiting for typed input.")
+	_hud.set_mic_listening(false)
+	_hud.set_mic_level(0.0)
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
@@ -83,7 +88,21 @@ func _toggle_debug_hitboxes() -> void:
 
 func _on_voice_listening_started() -> void:
 	_hud.set_status("Listening for voice incantation...")
+	_hud.set_mic_listening(true)
 	_debug_panel.set_message("Microphone listener started.")
+
+
+func _on_voice_listening_stopped() -> void:
+	_hud.set_mic_listening(false)
+	_hud.set_mic_level(0.0)
+
+
+func _on_voice_mic_level_changed(level: float) -> void:
+	_hud.set_mic_level(level)
+
+
+func _on_voice_transcript_updated(raw_text: String, normalized_input: String) -> void:
+	_hud.set_last_voice_text(raw_text, normalized_input)
 
 
 func _on_voice_recognition_completed(result: Dictionary) -> void:
