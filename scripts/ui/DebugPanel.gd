@@ -2,6 +2,7 @@ extends PanelContainer
 
 @onready var _raw_input_label: Label = $MarginContainer/VBoxContainer/RawInputLabel
 @onready var _normalized_input_label: Label = $MarginContainer/VBoxContainer/NormalizedInputLabel
+@onready var _tokens_label: Label = $MarginContainer/VBoxContainer/TokensLabel
 @onready var _spell_label: Label = $MarginContainer/VBoxContainer/SpellLabel
 @onready var _stability_label: Label = $MarginContainer/VBoxContainer/StabilityLabel
 @onready var _power_label: Label = $MarginContainer/VBoxContainer/PowerLabel
@@ -9,12 +10,14 @@ extends PanelContainer
 @onready var _energy_label: Label = $MarginContainer/VBoxContainer/EnergyLabel
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
 @onready var _diagram_label: Label = $MarginContainer/VBoxContainer/DiagramLabel
+@onready var _backend_label: Label = $MarginContainer/VBoxContainer/BackendLabel
 @onready var _message_label: Label = $MarginContainer/VBoxContainer/MessageLabel
 
 
 func set_submitted_input(raw_input: String, normalized_input: String) -> void:
 	_raw_input_label.text = "Raw Input: %s" % raw_input
 	_normalized_input_label.text = "Normalized: %s" % normalized_input
+	_tokens_label.text = "Tokens: %s" % normalized_input.split(" ", false)
 
 
 func set_spell_result(result: Dictionary) -> void:
@@ -27,6 +30,8 @@ func set_spell_result(result: Dictionary) -> void:
 		float(result.get("health_spent", 0.0))
 	]
 	_message_label.text = "Message: %s" % result.get("message", "")
+	if result.has("warnings") and not result.get("warnings", []).is_empty():
+		_message_label.text += " | Warnings: %s" % ", ".join(result.get("warnings", []))
 
 
 func set_voice_power(voice_power: float) -> void:
@@ -43,3 +48,7 @@ func set_diagram_result(diagram_result: Dictionary) -> void:
 
 func set_message(message: String) -> void:
 	_message_label.text = "Message: %s" % message
+
+
+func set_backend_state(state: String) -> void:
+	_backend_label.text = "Backend: %s" % state

@@ -1,8 +1,11 @@
 extends StaticBody3D
 class_name PickupItem
 
+@export var pickup_kind := "item"
 @export var item_name := "Kindling"
 @export var amount := 1
+@export var lexeme_id := ""
+@export var source_note := ""
 
 @onready var _mesh: MeshInstance3D = $MeshInstance3D
 @onready var _label: Label3D = $Label3D
@@ -28,25 +31,53 @@ func _process(delta: float) -> void:
 	rotation.y += delta * 0.9
 
 
-func configure_pickup(next_item_name: String, next_amount: int = 1) -> void:
+func configure_item_pickup(next_item_name: String, next_amount: int = 1) -> void:
+	pickup_kind = "item"
 	item_name = next_item_name
 	amount = max(next_amount, 1)
 	if is_node_ready():
 		_update_visuals()
 
 
-func collect_to(inventory_system: Node) -> bool:
-	if inventory_system == null or not inventory_system.has_method("add_item"):
-		return false
-	inventory_system.add_item(item_name, amount)
-	queue_free()
-	return true
+func configure_lexeme_pickup(next_lexeme_id: String, next_source_note: String) -> void:
+	pickup_kind = "lexeme"
+	lexeme_id = next_lexeme_id
+	source_note = next_source_note
+	if is_node_ready():
+		_update_visuals()
+
+
+func collect_pickup(context: Dictionary) -> Dictionary:
+	match pickup_kind:
+		"item":
+			var inventory_system: Node = context.get("inventory_system")
+			if inventory_system == null or not inventory_system.has_method("add_item"):
+				return {"success": false, "message": "No inventory available."}
+			inventory_system.add_item(item_name, amount)
+			queue_free()
+			return {"success": true, "message": "Picked up %s x%d." % [item_name, amount]}
+		"lexeme":
+			var spellbook_system: Node = context.get("spellbook_system")
+			if spellbook_system == null or not spellbook_system.has_method("discover_lexeme"):
+				return {"success": false, "message": "No spellbook research system available."}
+			var discovered: bool = spellbook_system.discover_lexeme(lexeme_id, source_note, 1.0, "Recovered from field notes.")
+			if not discovered:
+				return {"success": false, "message": "You already understand %s." % lexeme_id}
+			queue_free()
+			return {"success": true, "message": "Discovered the word %s." % lexeme_id}
+	return {"success": false, "message": "Unknown pickup type."}
 
 
 func _update_visuals() -> void:
 	if _label != null:
-		_label.text = "%s x%d" % [item_name, amount]
+		if pickup_kind == "lexeme":
+			_label.text = "Lexeme: %s" % lexeme_id
+		else:
+			_label.text = "%s x%d" % [item_name, amount]
 	if _material == null:
+		return
+	if pickup_kind == "lexeme":
+		_material.albedo_color = Color(0.42, 0.78, 1.0, 1.0)
 		return
 	_material.albedo_color = _get_item_color(item_name)
 

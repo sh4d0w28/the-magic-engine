@@ -26,6 +26,23 @@
       "fuel_search_radius": 3,
       "fuel_consume_interval_seconds": 5,
       "no_fuel_lifetime_seconds": 3
+    },
+    {
+      "id": "self_push",
+      "name": "Self Push",
+      "incantation": "TOR SEV",
+      "diagram": "none",
+      "base_cost": 9,
+      "push_strength": 9
+    },
+    {
+      "id": "target_push",
+      "name": "Target Push",
+      "incantation": "TOR KAR",
+      "diagram": "none",
+      "base_cost": 11,
+      "push_strength": 8,
+      "range": 9
     }
   ]
 }

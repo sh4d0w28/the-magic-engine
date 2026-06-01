@@ -82,6 +82,15 @@ func take_damage(amount: float) -> bool:
 	return alive_after_hit
 
 
+func apply_force_push(direction: Vector3, strength: float) -> void:
+	var push_direction := direction
+	push_direction.y = 0.0
+	if push_direction == Vector3.ZERO:
+		push_direction = get_forward_direction()
+	push_direction = push_direction.normalized()
+	velocity += push_direction * strength
+
+
 func restore_to_full() -> void:
 	_defeat_reported = false
 	_energy_system.restore_full()

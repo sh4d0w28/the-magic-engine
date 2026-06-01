@@ -28,8 +28,11 @@ func _ready() -> void:
 	for pickup in _pickups.get_children():
 		_pickup_spawn_data.append({
 			"transform": pickup.transform,
+			"pickup_kind": str(pickup.get("pickup_kind")),
 			"item_name": str(pickup.get("item_name")),
-			"amount": int(pickup.get("amount"))
+			"amount": int(pickup.get("amount")),
+			"lexeme_id": str(pickup.get("lexeme_id")),
+			"source_note": str(pickup.get("source_note"))
 		})
 	if _player.has_signal("player_defeated"):
 		_player.player_defeated.connect(_on_player_defeated)
@@ -95,7 +98,10 @@ func _respawn_pickups() -> void:
 		var pickup = _pickup_scene.instantiate()
 		_pickups.add_child(pickup)
 		pickup.transform = pickup_data.get("transform", Transform3D.IDENTITY)
-		pickup.configure_pickup(str(pickup_data.get("item_name", "")), int(pickup_data.get("amount", 1)))
+		if str(pickup_data.get("pickup_kind", "item")) == "lexeme":
+			pickup.configure_lexeme_pickup(str(pickup_data.get("lexeme_id", "")), str(pickup_data.get("source_note", "")))
+		else:
+			pickup.configure_item_pickup(str(pickup_data.get("item_name", "")), int(pickup_data.get("amount", 1)))
 
 
 func _on_player_contact_damage(amount: float) -> void:

@@ -70,6 +70,16 @@ text = "Voice Window: -"
 layout_mode = 2
 text = "Last Voice: -"
 
+[node name="LiveTranscriptLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Live Voice: -"
+autowrap_mode = 3
+
+[node name="LivePredictionLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Voice Prediction: -"
+autowrap_mode = 3
+
 [node name="CombatFeedLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Combat: Waiting for first hit"
@@ -150,6 +160,11 @@ layout_mode = 2
 text = "N: New Page  PageUp/PageDown: Flip Pages"
 autowrap_mode = 3
 
+[node name="KnownWordsLabel" type="Label" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Known words: none"
+autowrap_mode = 3
+
 [node name="PageTitleLabel" type="Label" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Spell Title"
@@ -168,10 +183,15 @@ placeholder_text = "Words you want to bind to this spell"
 
 [node name="EffectLabel" type="Label" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Spell Effect"
+text = "Preferred Diagram"
 
 [node name="EffectOptionButton" type="OptionButton" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
+
+[node name="FormulaPredictionLabel" type="Label" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Predicted outcome: -"
+autowrap_mode = 3
 
 [node name="DiagramHintLabel" type="Label" parent="SpellbookPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2

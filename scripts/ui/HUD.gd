@@ -2,8 +2,8 @@ extends Control
 
 signal input_submitted(text: String)
 signal spellbook_title_changed(title: String)
-signal spellbook_incantation_changed(incantation: String)
-signal spellbook_effect_changed(effect_id: String)
+signal spellbook_formula_changed(formula_text: String)
+signal spellbook_diagram_changed(preferred_diagram: String)
 signal spellbook_notes_changed(notes: String)
 
 @onready var _health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
@@ -16,6 +16,8 @@ signal spellbook_notes_changed(notes: String)
 @onready var _mic_level_bar: ProgressBar = $MarginContainer/VBoxContainer/MicLevelBar
 @onready var _voice_window_label: Label = $MarginContainer/VBoxContainer/VoiceWindowLabel
 @onready var _last_voice_label: Label = $MarginContainer/VBoxContainer/LastVoiceLabel
+@onready var _live_transcript_label: Label = $MarginContainer/VBoxContainer/LiveTranscriptLabel
+@onready var _live_prediction_label: Label = $MarginContainer/VBoxContainer/LivePredictionLabel
 @onready var _combat_feed_label: Label = $MarginContainer/VBoxContainer/CombatFeedLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 @onready var _inventory_panel: PanelContainer = $InventoryPanel
@@ -24,9 +26,11 @@ signal spellbook_notes_changed(notes: String)
 @onready var _spellbook_panel: PanelContainer = $SpellbookPanel
 @onready var _page_status_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/PageStatusLabel
 @onready var _page_hint_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/PageHintLabel
+@onready var _known_words_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/KnownWordsLabel
 @onready var _title_edit: LineEdit = $SpellbookPanel/MarginContainer/VBoxContainer/TitleEdit
-@onready var _incantation_edit: LineEdit = $SpellbookPanel/MarginContainer/VBoxContainer/IncantationEdit
-@onready var _effect_option_button: OptionButton = $SpellbookPanel/MarginContainer/VBoxContainer/EffectOptionButton
+@onready var _formula_edit: LineEdit = $SpellbookPanel/MarginContainer/VBoxContainer/IncantationEdit
+@onready var _diagram_option_button: OptionButton = $SpellbookPanel/MarginContainer/VBoxContainer/EffectOptionButton
+@onready var _formula_prediction_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/FormulaPredictionLabel
 @onready var _diagram_hint_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/DiagramHintLabel
 @onready var _notes_edit: TextEdit = $SpellbookPanel/MarginContainer/VBoxContainer/NotesEdit
 @onready var _aim_reticle: Control = $AimReticle
@@ -34,17 +38,17 @@ signal spellbook_notes_changed(notes: String)
 var _mic_mode_enabled := false
 var _mic_is_listening := false
 var _selected_inventory_item_name := ""
-var _spell_effects: Array[Dictionary] = []
 var _suppress_spellbook_signals := false
 
 
 func _ready() -> void:
 	_input_line.text_submitted.connect(_on_input_submitted)
 	_title_edit.text_changed.connect(_on_spellbook_title_changed)
-	_incantation_edit.text_changed.connect(_on_spellbook_incantation_changed)
-	_effect_option_button.item_selected.connect(_on_spellbook_effect_selected)
+	_formula_edit.text_changed.connect(_on_spellbook_formula_changed)
+	_diagram_option_button.item_selected.connect(_on_spellbook_diagram_selected)
 	_notes_edit.text_changed.connect(_on_spellbook_notes_text_changed)
 	_input_line.hide()
+	_setup_diagram_options()
 	var player := get_tree().get_first_node_in_group("player_controller")
 	if player != null and player.has_signal("health_mana_changed"):
 		player.health_mana_changed.connect(set_health_and_mana)
@@ -101,6 +105,28 @@ func set_last_voice_text(raw_text: String, normalized_input: String) -> void:
 	_last_voice_label.text = "Last Voice: %s -> %s" % [raw_text, normalized_input]
 
 
+func set_live_voice_partial(raw_text: String, normalized_input: String, token_states: Array) -> void:
+	if raw_text.is_empty():
+		_live_transcript_label.text = "Live Voice: -"
+		return
+	var token_labels: Array[String] = []
+	for token_state in token_states:
+		var token_label := "%s[%s]" % [str(token_state.get("token", "")), str(token_state.get("state", "known"))]
+		token_labels.append(token_label)
+	_live_transcript_label.text = "Live Voice: %s -> %s | %s" % [raw_text, normalized_input, " ".join(token_labels)]
+
+
+func set_live_voice_prediction(result: Dictionary) -> void:
+	if result.is_empty():
+		_live_prediction_label.text = "Voice Prediction: -"
+		return
+	_live_prediction_label.text = "Voice Prediction: %s | stab %.2f | cost %.2f" % [
+		str(result.get("spell_name", result.get("spell_id", "-"))),
+		float(result.get("stability", 0.0)),
+		float(result.get("final_cost", 0.0))
+	]
+
+
 func set_score(score: int) -> void:
 	_score_label.text = "Score: %d" % score
 
@@ -128,43 +154,65 @@ func set_inventory_selection(selected_item_name: String, items: Dictionary) -> v
 	set_inventory_items(items, selected_item_name)
 
 
-func set_spellbook_effects(spell_effects: Array[Dictionary]) -> void:
-	_spell_effects = spell_effects.duplicate(true)
-	_suppress_spellbook_signals = true
-	_effect_option_button.clear()
-	for effect in _spell_effects:
-		_effect_option_button.add_item(str(effect.get("name", "Spell")))
-	_suppress_spellbook_signals = false
+func set_known_words(lexemes: Array[Dictionary]) -> void:
+	if lexemes.is_empty():
+		_known_words_label.text = "Known words: none"
+		return
+	var lines: Array[String] = []
+	for lexeme in lexemes:
+		var meaning_bits: Array[String] = []
+		var semantic_tags: Dictionary = lexeme.get("semantic_tags", {})
+		for key in ["element", "action", "target_mode", "motion_mode", "anchor_mode"]:
+			var semantic_value: String = str(semantic_tags.get(key, ""))
+			if not semantic_value.is_empty():
+				meaning_bits.append("%s=%s" % [key, semantic_value])
+		lines.append("%s | %s" % [str(lexeme.get("id", "")), ", ".join(meaning_bits)])
+	_known_words_label.text = "Known words:\n%s" % "\n".join(lines)
 
 
-func set_spellbook_page(page: Dictionary, index: int, total_count: int) -> void:
+func set_formula_page(page: Dictionary, index: int, total_count: int) -> void:
 	_suppress_spellbook_signals = true
 	if total_count <= 0 or page.is_empty():
-		_page_status_label.text = "No pages yet. Press N while the spellbook is open to author a page."
+		_page_status_label.text = "No formula pages yet. Press N while the spellbook is open to author a page."
 		_title_edit.text = ""
-		_incantation_edit.text = ""
+		_formula_edit.text = ""
 		_notes_edit.text = ""
+		_formula_prediction_label.text = "Predicted outcome: -"
 		_diagram_hint_label.text = "Required diagram: -"
 		_title_edit.editable = false
-		_incantation_edit.editable = false
-		_effect_option_button.disabled = true
+		_formula_edit.editable = false
+		_diagram_option_button.disabled = true
 		_notes_edit.editable = false
 		_suppress_spellbook_signals = false
 		return
 
-	_page_status_label.text = "Page %d/%d" % [index + 1, total_count]
+	_page_status_label.text = "Formula Page %d/%d" % [index + 1, total_count]
 	_title_edit.editable = true
-	_incantation_edit.editable = true
-	_effect_option_button.disabled = false
+	_formula_edit.editable = true
+	_diagram_option_button.disabled = false
 	_notes_edit.editable = true
 	_title_edit.text = str(page.get("title", ""))
-	_incantation_edit.text = str(page.get("incantation", ""))
+	_formula_edit.text = " ".join(page.get("token_sequence", []))
 	_notes_edit.text = str(page.get("notes", ""))
-	var effect_id: String = str(page.get("effect_id", ""))
-	var diagram_name: String = str(page.get("diagram", "none"))
-	_select_effect_option(effect_id)
-	_diagram_hint_label.text = "Required diagram: %s" % diagram_name
+	var preferred_diagram: String = str(page.get("preferred_diagram", "none"))
+	_select_diagram_option(preferred_diagram)
+	_formula_prediction_label.text = "Predicted outcome: %s | stability %.2f" % [
+		str(page.get("last_result", "-")),
+		float(page.get("last_stability", 0.0))
+	]
+	_diagram_hint_label.text = "Required diagram: %s" % preferred_diagram
 	_suppress_spellbook_signals = false
+
+
+func set_formula_prediction(result: Dictionary) -> void:
+	if result.is_empty():
+		_formula_prediction_label.text = "Predicted outcome: -"
+		return
+	_formula_prediction_label.text = "Predicted outcome: %s | stability %.2f | cost %.2f" % [
+		str(result.get("spell_name", result.get("spell_id", "-"))),
+		float(result.get("stability", 0.0)),
+		float(result.get("final_cost", 0.0))
+	]
 
 
 func toggle_inventory_panel() -> bool:
@@ -187,7 +235,7 @@ func toggle_spellbook_panel() -> bool:
 			_title_edit.grab_focus()
 	else:
 		_title_edit.release_focus()
-		_incantation_edit.release_focus()
+		_formula_edit.release_focus()
 		_notes_edit.release_focus()
 	return _spellbook_panel.visible
 
@@ -195,7 +243,7 @@ func toggle_spellbook_panel() -> bool:
 func close_spellbook_panel() -> void:
 	_spellbook_panel.hide()
 	_title_edit.release_focus()
-	_incantation_edit.release_focus()
+	_formula_edit.release_focus()
 	_notes_edit.release_focus()
 
 
@@ -234,19 +282,17 @@ func _on_spellbook_title_changed(new_text: String) -> void:
 	spellbook_title_changed.emit(new_text)
 
 
-func _on_spellbook_incantation_changed(new_text: String) -> void:
+func _on_spellbook_formula_changed(new_text: String) -> void:
 	if _suppress_spellbook_signals:
 		return
-	spellbook_incantation_changed.emit(new_text)
+	spellbook_formula_changed.emit(new_text)
 
 
-func _on_spellbook_effect_selected(selected_index: int) -> void:
+func _on_spellbook_diagram_selected(selected_index: int) -> void:
 	if _suppress_spellbook_signals:
 		return
-	if selected_index < 0 or selected_index >= _spell_effects.size():
-		return
-	var effect: Dictionary = _spell_effects[selected_index]
-	spellbook_effect_changed.emit(str(effect.get("id", "")))
+	var preferred_diagram := str(_diagram_option_button.get_item_metadata(selected_index))
+	spellbook_diagram_changed.emit(preferred_diagram)
 
 
 func _on_spellbook_notes_text_changed() -> void:
@@ -258,9 +304,7 @@ func _on_spellbook_notes_text_changed() -> void:
 func _update_aim_reticle() -> void:
 	if not _aim_reticle.visible:
 		return
-
-	var mouse_position: Vector2 = get_viewport().get_mouse_position()
-	_aim_reticle.position = mouse_position
+	_aim_reticle.position = get_viewport().get_mouse_position()
 
 
 func _update_mic_status_label() -> void:
@@ -272,11 +316,16 @@ func _update_mic_status_label() -> void:
 	_mic_status_label.text = "Mic: %s" % state_text
 
 
-func _select_effect_option(effect_id: String) -> void:
-	for index in range(_spell_effects.size()):
-		if str(_spell_effects[index].get("id", "")) == effect_id:
-			_effect_option_button.select(index)
+func _setup_diagram_options() -> void:
+	_diagram_option_button.clear()
+	for diagram_name in ["none", "circle", "triangle", "circle_with_dot"]:
+		_diagram_option_button.add_item(diagram_name.capitalize())
+		_diagram_option_button.set_item_metadata(_diagram_option_button.item_count - 1, diagram_name)
+
+
+func _select_diagram_option(diagram_name: String) -> void:
+	for index in range(_diagram_option_button.item_count):
+		if str(_diagram_option_button.get_item_metadata(index)) == diagram_name:
+			_diagram_option_button.select(index)
 			return
-	if _spell_effects.is_empty():
-		return
-	_effect_option_button.select(0)
+	_diagram_option_button.select(0)

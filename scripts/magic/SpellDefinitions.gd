@@ -62,7 +62,9 @@ func _use_fallback_definitions() -> void:
 	for spell_definition in [
 		{"id": "spark", "name": "Spark", "incantation": "RAK", "diagram": "circle", "base_cost": 5.0, "duration_seconds": 1.0},
 		{"id": "fireball", "name": "Fireball", "incantation": "RAK TOR", "diagram": "triangle", "base_cost": 25.0, "speed": 12.0, "range": 20.0},
-		{"id": "bonfire", "name": "Bonfire", "incantation": "RAK DUM", "diagram": "circle_with_dot", "base_cost": 15.0, "fuel_search_radius": 3.0, "fuel_consume_interval_seconds": 5.0, "no_fuel_lifetime_seconds": 3.0}
+		{"id": "bonfire", "name": "Bonfire", "incantation": "RAK DUM", "diagram": "circle_with_dot", "base_cost": 15.0, "fuel_search_radius": 3.0, "fuel_consume_interval_seconds": 5.0, "no_fuel_lifetime_seconds": 3.0},
+		{"id": "self_push", "name": "Self Push", "incantation": "TOR SEV", "diagram": "none", "base_cost": 9.0, "push_strength": 9.0},
+		{"id": "target_push", "name": "Target Push", "incantation": "TOR KAR", "diagram": "none", "base_cost": 11.0, "push_strength": 8.0, "range": 9.0}
 	]:
 		_spell_definitions[spell_definition["incantation"]] = spell_definition
 		_spell_definitions_by_id[spell_definition["id"]] = spell_definition

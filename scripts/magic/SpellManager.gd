@@ -6,6 +6,7 @@ var _spark_scene := preload("res://scenes/effects/SparkEffect.tscn")
 var _fireball_scene := preload("res://scenes/effects/Fireball.tscn")
 var _bonfire_scene := preload("res://scenes/effects/Bonfire.tscn")
 var _backlash_scene := preload("res://scenes/effects/BacklashEffect.tscn")
+var _impact_burst_scene := preload("res://scenes/effects/ImpactBurst.tscn")
 
 @onready var _player: CharacterBody3D = $"../Player"
 @onready var _hud: Control = $"../UI/HUD"
@@ -32,12 +33,10 @@ func _initialize_combat_feedback() -> void:
 	_hud.set_score(_score)
 
 
-func submit_incantation(raw_input: String, normalized_input: String, input_type: String = "typed") -> void:
+func build_cast_request(raw_input: String, normalized_input: String, input_type: String = "typed") -> Dictionary:
 	var diagram_result: Dictionary = _diagram_recognizer.get_diagram_result()
-	var spell_definition: Dictionary = {}
-	if _spellbook_system != null and _spellbook_system.has_method("resolve_spell_definition"):
-		spell_definition = _spellbook_system.resolve_spell_definition(normalized_input)
-	var request := {
+	var vocabulary_payload: Dictionary = _spellbook_system.build_active_vocabulary_payload()
+	return {
 		"caster": _player,
 		"raw_input": raw_input,
 		"normalized_input": normalized_input,
@@ -47,8 +46,17 @@ func submit_incantation(raw_input: String, normalized_input: String, input_type:
 		"diagram_accuracy": diagram_result.get("accuracy", 0.0),
 		"diagram_size": diagram_result.get("size", 0.0),
 		"target_position": _player.get_target_position(),
-		"spell_definition": spell_definition
+		"discovered_lexeme_ids": vocabulary_payload.get("discovered_ids", [])
 	}
+
+
+func preview_incantation(raw_input: String, normalized_input: String) -> Dictionary:
+	var request: Dictionary = build_cast_request(raw_input, normalized_input, "preview")
+	return _magic_engine.preview_request(request)
+
+
+func submit_incantation(raw_input: String, normalized_input: String, input_type: String = "typed") -> void:
+	var request: Dictionary = build_cast_request(raw_input, normalized_input, input_type)
 	var result := _magic_engine.execute_request(request)
 	_voice_power_tracker.consume_voice_power()
 	_debug_panel.set_spell_result(result)
@@ -68,9 +76,7 @@ func submit_voice_incantation(raw_input: String, normalized_input: String) -> vo
 
 
 func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
-	var spell_definition: Dictionary = request.get("spell_definition", {})
-	if spell_definition.is_empty():
-		spell_definition = _spell_definitions.get_spell_by_incantation(str(result.get("normalized_input", "")))
+	var spell_definition: Dictionary = _spell_definitions.get_spell_by_id(str(result.get("spell_id", "")))
 	match str(result.get("spell_id", "")):
 		"spark":
 			var spark = _spark_scene.instantiate()
@@ -99,12 +105,57 @@ func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
 			bonfire.no_fuel_lifetime_seconds = float(spell_definition.get("no_fuel_lifetime_seconds", 3.0))
 			_active_spells.add_child(bonfire)
 			bonfire.global_position = request.get("target_position", _player.get_target_position()) + Vector3.UP * 0.1
+		"self_push":
+			var push_strength: float = float(spell_definition.get("push_strength", 9.0)) * float(result.get("final_power", 1.0))
+			_player.apply_force_push(_player.get_forward_direction(), push_strength)
+			_spawn_push_feedback(_player.global_position + Vector3.UP * 0.8)
+		"target_push":
+			var target = _find_push_target(request.get("target_position", _player.get_target_position()), float(spell_definition.get("range", 9.0)))
+			if target != null and target.has_method("receive_force_push"):
+				var push_direction: Vector3 = target.global_position - _player.global_position
+				target.receive_force_push(push_direction, float(spell_definition.get("push_strength", 8.0)) * float(result.get("final_power", 1.0)))
+				_spawn_push_feedback(target.global_position + Vector3.UP * 0.9)
+			else:
+				_hud.set_status("Target push resolved, but no valid target was in range.")
 
 
 func _spawn_backlash(request: Dictionary) -> void:
 	var backlash = _backlash_scene.instantiate()
 	_active_spells.add_child(backlash)
 	backlash.global_position = request.get("target_position", _player.get_target_position())
+
+
+func _spawn_push_feedback(world_position: Vector3) -> void:
+	var burst = _impact_burst_scene.instantiate()
+	_active_spells.add_child(burst)
+	burst.global_position = world_position
+
+
+func _find_push_target(target_position: Vector3, max_range: float) -> Node3D:
+	var best_target: Node3D = null
+	var best_distance := INF
+	for group_name in ["target_dummy", "hostile_enemy"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if not node is Node3D:
+				continue
+			var distance_to_target: float = node.global_position.distance_to(target_position)
+			if distance_to_target > max_range or distance_to_target >= best_distance:
+				continue
+			best_distance = distance_to_target
+			best_target = node
+	if best_target != null:
+		return best_target
+
+	for group_name in ["target_dummy", "hostile_enemy"]:
+		for node in get_tree().get_nodes_in_group(group_name):
+			if not node is Node3D:
+				continue
+			var distance_to_player: float = node.global_position.distance_to(_player.global_position)
+			if distance_to_player > max_range or distance_to_player >= best_distance:
+				continue
+			best_distance = distance_to_player
+			best_target = node
+	return best_target
 
 
 func _on_node_added(node: Node) -> void:

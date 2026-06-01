@@ -67,6 +67,15 @@ func receive_spark_hit() -> void:
 	_apply_damage(1, Color(1.0, 0.8, 0.3, 1.0), Color(1.0, 0.9, 0.45, 1.0))
 
 
+func receive_force_push(direction: Vector3, strength: float) -> void:
+	var push_direction := direction
+	push_direction.y = 0.0
+	if push_direction == Vector3.ZERO:
+		push_direction = Vector3.FORWARD
+	var target_position: Vector3 = global_position + push_direction.normalized() * minf(strength * 0.1, 1.4)
+	global_position = target_position
+
+
 func _apply_damage(amount: int, body_color: Color, head_color: Color) -> void:
 	if is_destroyed:
 		return

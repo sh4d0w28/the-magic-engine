@@ -111,6 +111,15 @@ func receive_spark_hit() -> void:
 	_apply_damage(1, Color(1.0, 0.82, 0.35, 1.0), Color(1.0, 0.92, 0.48, 1.0))
 
 
+func receive_force_push(direction: Vector3, strength: float) -> void:
+	var push_direction := direction
+	push_direction.y = 0.0
+	if push_direction == Vector3.ZERO:
+		push_direction = Vector3.BACK
+	push_direction = push_direction.normalized()
+	velocity += push_direction * strength
+
+
 func force_attack_player() -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = _resolve_player()

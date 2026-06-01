@@ -36,6 +36,10 @@ text = "Raw Input: "
 layout_mode = 2
 text = "Normalized: "
 
+[node name="TokensLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Tokens: "
+
 [node name="SpellLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Spell: "
@@ -63,6 +67,10 @@ text = "Voice Power: "
 [node name="DiagramLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Diagram: "
+
+[node name="BackendLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Backend: "
 
 [node name="MessageLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
