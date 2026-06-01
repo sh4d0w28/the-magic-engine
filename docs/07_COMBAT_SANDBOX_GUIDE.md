@@ -4,6 +4,7 @@
 
 The Phase 1 prototype has progressed beyond isolated milestone checks. The current playable focus is a single-scene combat sandbox that proves:
 
+- discoverable lexeme research,
 - player-authored spell research pages,
 - typed incantation flow,
 - microphone voice incantation flow,
@@ -28,9 +29,10 @@ The Phase 1 prototype has progressed beyond isolated milestone checks. The curre
 
 ### Spells
 
-- spell pages are authored by the player,
-- each page stores a custom title, incantation, effect binding, and notes,
-- authored incantations can map to `Spark`, `Fireball`, or `Bonfire`.
+- words have deterministic meanings,
+- players discover words like `RAK`, `TOR`, and `DUM` in the arena,
+- formula pages store authored token sequences and notes,
+- outcomes currently resolve to `Spark`, `Fireball`, `Bonfire`, `Self Push`, or `Target Push`.
 
 ### Targets and Resources
 
@@ -51,8 +53,8 @@ The Phase 1 prototype has progressed beyond isolated milestone checks. The curre
 
 1. Move around the arena and confirm camera-relative control feels correct.
 2. Aim with the screen reticle and verify the ground marker tracks the cursor.
-3. Open the spellbook, create a page, and bind a custom incantation to a spell effect.
-4. Press `M`, speak that authored incantation, and confirm it resolves to a valid spell.
+3. Open the spellbook, create a formula page, and write a token sequence using discovered words.
+4. Press `M`, speak that discovered incantation, and confirm partial transcript plus final resolution.
 5. Cast your authored fireball page into a dummy and confirm direct impact, damage feedback, and destruction.
 6. Cast your authored fireball page between nearby dummies and confirm splash damage.
 7. Let a hostile reach the player and confirm contact damage is applied.

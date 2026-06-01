@@ -4,9 +4,10 @@ This repository contains the design package and the in-repo implementation for t
 
 The current state is a playable local combat sandbox in Godot 4.6.3:
 - camera-relative movement with mouse orbit,
-- player-authored spellbook pages,
-- typed fire incantations resolved from authored pages,
-- microphone voice incantations,
+- a compositional magic language with discoverable words,
+- player-authored formula pages,
+- typed incantations resolved from discovered word meanings,
+- streaming microphone incantation support through a local sidecar seam,
 - simulated voice power,
 - simple diagram recognition,
 - inventory use/drop with world pickups,
@@ -63,7 +64,7 @@ Phase 1 is a small local prototype:
 
 1. Move around the arena.
 2. Aim using the mouse reticle and ground target marker.
-3. Open the spellbook with `B`, author your own spell pages, and bind incantations to the available fire effects.
+3. Discover lexeme pickups, open the spellbook with `B`, and author your own formula pages from known words.
 4. Hit target dummies to test direct hits, splash, and destruction.
 5. Kite hostile enemies and verify contact damage plus reset flow on defeat.
 6. Use inventory items, pick up world materials, and drop items back into the arena.

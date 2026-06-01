@@ -48,6 +48,8 @@ The project has been revised to match the milestone order in the spec. Each mile
 40. `6f754d5` - `feat: add player inventory panel`
 41. `b8c22de` - `feat: add spellbook notes panel`
 42. `e37f0ff` - `feat: add authored spellbook and pickup inventory loop`
+43. `c045fb1` - `feat: add compositional magic language sandbox`
+44. `62fb73e` - `test: cover compositional magic voice and research flow`
 
 ## Verification Status
 
@@ -58,4 +60,4 @@ The project has been revised to match the milestone order in the spec. Each mile
 - The acceptance harness passes with:
   - `.\Godot_v4.6.3-stable_win64_console.exe --headless --path . --script res://scripts/tests/AcceptanceRunner.gd`
 - `checklists/ACCEPTANCE_CHECKLIST.md` has been updated to reflect the verified results.
-- The current playable milestone is a local combat sandbox with authored spellbook pages, typed and microphone incantations, world pickups, inventory use/drop, dummy targets, hostile pressure, player defeat/reset flow, wood fuel, score feedback, and optional debug hitboxes.
+- The current playable milestone is a local combat sandbox with discoverable lexemes, compositional incantations, authored formula pages, streaming voice partials, world pickups, inventory use/drop, dummy targets, hostile pressure, player defeat/reset flow, wood fuel, score feedback, and optional debug hitboxes.
