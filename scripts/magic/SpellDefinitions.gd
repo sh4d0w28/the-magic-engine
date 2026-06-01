@@ -3,6 +3,7 @@ extends RefCounted
 const SPELL_DATA_PATH := "res://data/spells.json"
 
 var _spell_definitions: Dictionary = {}
+var _spell_definitions_by_id: Dictionary = {}
 
 
 func _init() -> void:
@@ -11,6 +12,20 @@ func _init() -> void:
 
 func get_spell_by_incantation(incantation: String) -> Dictionary:
 	return _spell_definitions.get(incantation, {}).duplicate(true)
+
+
+func get_spell_by_id(spell_id: String) -> Dictionary:
+	return _spell_definitions_by_id.get(spell_id, {}).duplicate(true)
+
+
+func get_available_spell_templates() -> Array[Dictionary]:
+	var templates: Array[Dictionary] = []
+	for spell_definition in _spell_definitions_by_id.values():
+		templates.append((spell_definition as Dictionary).duplicate(true))
+	templates.sort_custom(func(left: Dictionary, right: Dictionary) -> bool:
+		return str(left.get("name", "")) < str(right.get("name", ""))
+	)
+	return templates
 
 
 func has_incantation(incantation: String) -> bool:
@@ -35,9 +50,12 @@ func _load_spell_definitions() -> void:
 
 	for spell_definition in parsed_json.get("spells", []):
 		var incantation: String = str(spell_definition.get("incantation", ""))
+		var spell_id: String = str(spell_definition.get("id", ""))
 		if incantation.is_empty():
 			continue
 		_spell_definitions[incantation] = spell_definition
+		if not spell_id.is_empty():
+			_spell_definitions_by_id[spell_id] = spell_definition
 
 
 func _use_fallback_definitions() -> void:
@@ -47,3 +65,4 @@ func _use_fallback_definitions() -> void:
 		{"id": "bonfire", "name": "Bonfire", "incantation": "RAK DUM", "diagram": "circle_with_dot", "base_cost": 15.0, "fuel_search_radius": 3.0, "fuel_consume_interval_seconds": 5.0, "no_fuel_lifetime_seconds": 3.0}
 	]:
 		_spell_definitions[spell_definition["incantation"]] = spell_definition
+		_spell_definitions_by_id[spell_definition["id"]] = spell_definition

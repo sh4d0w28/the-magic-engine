@@ -13,6 +13,7 @@ var _backlash_scene := preload("res://scenes/effects/BacklashEffect.tscn")
 @onready var _active_spells: Node3D = $ActiveSpells
 @onready var _voice_power_tracker: Node = $"../InputController/VoicePowerTracker"
 @onready var _diagram_recognizer: Node = $"../InputController/DiagramRecognizer"
+@onready var _spellbook_system: Node = $"../Player/SpellbookSystem"
 
 var _score := 0
 
@@ -33,6 +34,9 @@ func _initialize_combat_feedback() -> void:
 
 func submit_incantation(raw_input: String, normalized_input: String, input_type: String = "typed") -> void:
 	var diagram_result: Dictionary = _diagram_recognizer.get_diagram_result()
+	var spell_definition: Dictionary = {}
+	if _spellbook_system != null and _spellbook_system.has_method("resolve_spell_definition"):
+		spell_definition = _spellbook_system.resolve_spell_definition(normalized_input)
 	var request := {
 		"caster": _player,
 		"raw_input": raw_input,
@@ -42,7 +46,8 @@ func submit_incantation(raw_input: String, normalized_input: String, input_type:
 		"diagram_type": diagram_result.get("shape_type", "none"),
 		"diagram_accuracy": diagram_result.get("accuracy", 0.0),
 		"diagram_size": diagram_result.get("size", 0.0),
-		"target_position": _player.get_target_position()
+		"target_position": _player.get_target_position(),
+		"spell_definition": spell_definition
 	}
 	var result := _magic_engine.execute_request(request)
 	_voice_power_tracker.consume_voice_power()
@@ -63,7 +68,9 @@ func submit_voice_incantation(raw_input: String, normalized_input: String) -> vo
 
 
 func _spawn_success_effect(result: Dictionary, request: Dictionary) -> void:
-	var spell_definition: Dictionary = _spell_definitions.get_spell_by_incantation(str(result.get("normalized_input", "")))
+	var spell_definition: Dictionary = request.get("spell_definition", {})
+	if spell_definition.is_empty():
+		spell_definition = _spell_definitions.get_spell_by_incantation(str(result.get("normalized_input", "")))
 	match str(result.get("spell_id", "")):
 		"spark":
 			var spark = _spark_scene.instantiate()

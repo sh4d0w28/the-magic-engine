@@ -13,7 +13,9 @@ func execute_request(request: Dictionary) -> Dictionary:
 	if normalized_input.is_empty():
 		normalized_input = _spell_definitions.normalize_incantation(raw_input)
 
-	var spell_definition: Dictionary = _spell_definitions.get_spell_by_incantation(normalized_input)
+	var spell_definition: Dictionary = request.get("spell_definition", {})
+	if spell_definition.is_empty():
+		spell_definition = _spell_definitions.get_spell_by_incantation(normalized_input)
 	if spell_definition.is_empty():
 		return {
 			"success": false,

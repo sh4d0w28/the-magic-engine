@@ -1,19 +1,26 @@
 extends Node
 
+var _pickup_scene := preload("res://scenes/environment/PickupItem.tscn")
+
 @onready var _hud: Control = $"../UI/HUD"
 @onready var _debug_panel: PanelContainer = $"../UI/DebugPanel"
 @onready var _spell_manager: Node = $"../SpellManager"
 @onready var _voice_power_tracker: Node = $VoicePowerTracker
 @onready var _voice_incantation_recognizer: Node = $VoiceIncantationRecognizer
 @onready var _diagram_recognizer: Node = $DiagramRecognizer
+@onready var _player: CharacterBody3D = $"../Player"
 @onready var _inventory_system: Node = $"../Player/InventorySystem"
 @onready var _spellbook_system: Node = $"../Player/SpellbookSystem"
+@onready var _pickup_container: Node3D = $"../World/Environment/Pickups"
 
 var _voice_mode_enabled := false
 
 
 func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
+	_hud.spellbook_title_changed.connect(_on_spellbook_title_changed)
+	_hud.spellbook_incantation_changed.connect(_on_spellbook_incantation_changed)
+	_hud.spellbook_effect_changed.connect(_on_spellbook_effect_changed)
 	_hud.spellbook_notes_changed.connect(_on_spellbook_notes_changed)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_voice_incantation_recognizer.listening_started.connect(_on_voice_listening_started)
@@ -26,8 +33,9 @@ func _ready() -> void:
 	_voice_incantation_recognizer.listen_timeout.connect(_on_voice_listen_timeout)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
 	_inventory_system.inventory_changed.connect(_on_inventory_changed)
-	_spellbook_system.notes_changed.connect(_on_spellbook_notes_loaded)
-	_spellbook_system.known_spells_changed.connect(_on_known_spells_changed)
+	_inventory_system.selected_item_changed.connect(_on_inventory_selection_changed)
+	_spellbook_system.pages_changed.connect(_on_spellbook_pages_changed)
+	_spellbook_system.selected_page_changed.connect(_on_spellbook_selected_page_changed)
 	get_tree().set_meta("show_debug_hitboxes", false)
 	call_deferred("_initialize_ui_state")
 
@@ -39,40 +47,98 @@ func _initialize_ui_state() -> void:
 	_hud.set_mic_listening(false)
 	_hud.set_mic_level(0.0)
 	_hud.set_voice_listen_window(0.0)
+	_hud.set_spellbook_effects(_spellbook_system.get_available_effects())
 	_on_inventory_changed(_inventory_system.get_items())
-	_on_spellbook_notes_loaded(_spellbook_system.get_notes())
-	_on_known_spells_changed(_spellbook_system.get_known_spells())
+	_on_inventory_selection_changed(_inventory_system.get_selected_item_name())
+	_on_spellbook_pages_changed(_spellbook_system.get_pages())
+	_on_spellbook_selected_page_changed(
+		_spellbook_system.get_selected_page(),
+		_spellbook_system.get_selected_page_index(),
+		_spellbook_system.get_page_count()
+	)
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ENTER and not _hud.is_input_open():
-			_hud.open_input()
-			_hud.set_status("Typing incantation...")
-			_debug_panel.set_message("Input mode opened.")
-			if _voice_mode_enabled:
-				_set_voice_mode_enabled(false)
-				_debug_panel.set_message("Input mode opened. Voice mode disarmed.")
+	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+
+	if event.keycode == KEY_ENTER and not _hud.is_input_open():
+		_hud.open_input()
+		_hud.set_status("Typing incantation...")
+		_debug_panel.set_message("Input mode opened.")
+		if _voice_mode_enabled:
+			_set_voice_mode_enabled(false)
+			_debug_panel.set_message("Input mode opened. Voice mode disarmed.")
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.keycode == KEY_ESCAPE and _hud.is_input_open():
+		_hud.close_input()
+		_hud.set_status("Input cancelled.")
+		_debug_panel.set_message("Input cancelled.")
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("voice_incantation") and not _hud.is_input_open():
+		_toggle_voice_mode()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("pickup_item") and not _hud.is_input_open():
+		_pickup_nearest_item()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("toggle_inventory"):
+		_toggle_inventory_panel()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("toggle_spellbook"):
+		_toggle_spellbook_panel()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("toggle_debug_hitboxes"):
+		_toggle_debug_hitboxes()
+		get_viewport().set_input_as_handled()
+		return
+
+	if _hud.is_inventory_panel_open():
+		if event.is_action_pressed("inventory_next_item"):
+			_inventory_system.select_next_item()
 			get_viewport().set_input_as_handled()
-		elif event.is_action_pressed("voice_incantation") and not _hud.is_input_open():
-			_toggle_voice_mode()
+			return
+		if event.is_action_pressed("inventory_previous_item"):
+			_inventory_system.select_previous_item()
 			get_viewport().set_input_as_handled()
-		elif event.is_action_pressed("toggle_inventory"):
-			_toggle_inventory_panel()
+			return
+		if event.is_action_pressed("inventory_use_item"):
+			_use_selected_inventory_item()
 			get_viewport().set_input_as_handled()
-		elif event.is_action_pressed("toggle_spellbook"):
-			_toggle_spellbook_panel()
+			return
+		if event.is_action_pressed("inventory_drop_item"):
+			_drop_selected_inventory_item()
 			get_viewport().set_input_as_handled()
-		elif event.keycode == KEY_ESCAPE and _hud.is_input_open():
-			_hud.close_input()
-			_hud.set_status("Input cancelled.")
-			_debug_panel.set_message("Input cancelled.")
+			return
+
+	if _hud.is_spellbook_panel_open():
+		if event.is_action_pressed("spellbook_new_page"):
+			_create_spellbook_page()
 			get_viewport().set_input_as_handled()
-		elif event.is_action_pressed("toggle_debug_hitboxes"):
-			_toggle_debug_hitboxes()
+			return
+		if event.is_action_pressed("spellbook_next_page"):
+			_spellbook_system.select_next_page()
+			_hud.set_status("Turned to next spellbook page.")
 			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("spellbook_previous_page"):
+			_spellbook_system.select_previous_page()
+			_hud.set_status("Turned to previous spellbook page.")
+			get_viewport().set_input_as_handled()
+			return
 
 
 func normalize_input(raw_input: String) -> String:
@@ -97,19 +163,35 @@ func _on_diagram_changed(diagram_result: Dictionary) -> void:
 
 
 func _on_inventory_changed(items: Dictionary) -> void:
-	_hud.set_inventory_items(items)
+	_hud.set_inventory_items(items, _inventory_system.get_selected_item_name())
 
 
-func _on_known_spells_changed(spells: Array[Dictionary]) -> void:
-	_hud.set_known_spells(spells)
+func _on_inventory_selection_changed(item_name: String) -> void:
+	_hud.set_inventory_selection(item_name, _inventory_system.get_items())
 
 
-func _on_spellbook_notes_loaded(notes: String) -> void:
-	_hud.set_spellbook_notes(notes)
+func _on_spellbook_pages_changed(_pages: Array[Dictionary]) -> void:
+	_hud.set_spellbook_effects(_spellbook_system.get_available_effects())
+
+
+func _on_spellbook_selected_page_changed(page: Dictionary, index: int, total_count: int) -> void:
+	_hud.set_spellbook_page(page, index, total_count)
+
+
+func _on_spellbook_title_changed(title: String) -> void:
+	_spellbook_system.update_selected_page_title(title)
+
+
+func _on_spellbook_incantation_changed(incantation: String) -> void:
+	_spellbook_system.update_selected_page_incantation(incantation)
+
+
+func _on_spellbook_effect_changed(effect_id: String) -> void:
+	_spellbook_system.update_selected_page_effect(effect_id)
 
 
 func _on_spellbook_notes_changed(notes: String) -> void:
-	_spellbook_system.set_notes(notes)
+	_spellbook_system.update_selected_page_notes(notes)
 
 
 func _toggle_debug_hitboxes() -> void:
@@ -247,3 +329,63 @@ func _queue_voice_rearm_if_needed() -> void:
 func _restart_voice_listening_if_armed() -> void:
 	if _voice_mode_enabled and not _hud.is_input_open() and not _voice_incantation_recognizer.is_listening():
 		_voice_incantation_recognizer.start_listening()
+
+
+func _pickup_nearest_item() -> void:
+	var nearest_pickup: Node = null
+	var nearest_distance := INF
+	for pickup in get_tree().get_nodes_in_group("pickup_item"):
+		var pickup_distance: float = pickup.global_position.distance_to(_player.global_position)
+		if pickup_distance > 2.4:
+			continue
+		if pickup_distance < nearest_distance:
+			nearest_distance = pickup_distance
+			nearest_pickup = pickup
+
+	if nearest_pickup == null:
+		_hud.set_status("No pickup nearby.")
+		_debug_panel.set_message("Pickup search found nothing nearby.")
+		return
+
+	if nearest_pickup.has_method("collect_to") and nearest_pickup.collect_to(_inventory_system):
+		_hud.set_status("Picked up %s." % str(nearest_pickup.get("item_name")))
+		_debug_panel.set_message("Collected %s x%d." % [str(nearest_pickup.get("item_name")), int(nearest_pickup.get("amount"))])
+
+
+func _use_selected_inventory_item() -> void:
+	var result: Dictionary = _inventory_system.use_selected_item({
+		"player": _player,
+		"voice_power_tracker": _voice_power_tracker
+	})
+	_hud.set_status(str(result.get("message", "Unable to use item.")))
+	_debug_panel.set_message(str(result.get("message", "Inventory use attempted.")))
+
+
+func _drop_selected_inventory_item() -> void:
+	var result: Dictionary = _inventory_system.drop_selected_item()
+	if not result.get("success", false):
+		_hud.set_status(str(result.get("message", "Unable to drop item.")))
+		_debug_panel.set_message(str(result.get("message", "Inventory drop attempted.")))
+		return
+
+	var pickup := _pickup_scene.instantiate()
+	_pickup_container.add_child(pickup)
+	var drop_position: Vector3 = _player.global_position + _player.get_forward_direction() * 1.6
+	drop_position.y = 0.3
+	pickup.global_position = drop_position
+	pickup.configure_pickup(str(result.get("item_name", "")), int(result.get("amount", 1)))
+	_hud.set_status(str(result.get("message", "Item dropped.")))
+	_debug_panel.set_message(str(result.get("message", "Item dropped.")))
+
+
+func _create_spellbook_page() -> void:
+	if not _inventory_system.has_item("Blank Page") or not _inventory_system.has_item("Ink Vial"):
+		_hud.set_status("Need a Blank Page and Ink Vial to author a spell.")
+		_debug_panel.set_message("Spellbook page creation blocked by missing materials.")
+		return
+
+	_inventory_system.remove_item("Blank Page", 1)
+	_inventory_system.remove_item("Ink Vial", 1)
+	_spellbook_system.create_page()
+	_hud.set_status("New spell page authored.")
+	_debug_panel.set_message("Spellbook page created from inventory materials.")

@@ -43,6 +43,7 @@ func _run() -> void:
 	var wood_piles: Node = world.get_node("Environment/WoodPiles")
 	var target_dummies: Node = world.get_node("Environment/TargetDummies")
 	var hostiles: Node = world.get_node("Environment/Hostiles")
+	var pickups: Node = world.get_node("Environment/Pickups")
 	var voice_power_tracker: Node = input_controller.get_node("VoicePowerTracker")
 	var voice_incantation_recognizer: Node = input_controller.get_node("VoiceIncantationRecognizer")
 	var diagram_recognizer: Node = input_controller.get_node("DiagramRecognizer")
@@ -65,7 +66,8 @@ func _run() -> void:
 	_assert(is_equal_approx(player.get_health(), 100.0), "Health starts at 100")
 	_assert(is_equal_approx(player.get_mana(), 100.0), "Mana starts at 100")
 	_assert(inventory_system.get_items().has("Kindling"), "Inventory starts with starter items")
-	_assert(spellbook_system.get_known_spells().size() >= 3, "Spellbook starts with known spells")
+	_assert(inventory_system.get_items().has("Blank Page"), "Inventory starts with spellbook materials")
+	_assert(spellbook_system.get_page_count() == 0, "Spellbook starts with no authored pages")
 	energy_system.mana = 50.0
 	energy_system._process(1.0)
 	_assert(energy_system.mana > 50.0, "Mana regenerates")
@@ -100,6 +102,7 @@ func _run() -> void:
 	await process_frame
 	_assert(hud.get_node("InventoryPanel").visible, "Inventory toggle opens inventory panel")
 	_assert(hud.get_node("InventoryPanel/MarginContainer/VBoxContainer/InventoryItemsLabel").text.contains("Kindling"), "Inventory panel shows starter items")
+	_assert(hud.get_node("InventoryPanel/MarginContainer/VBoxContainer/InventoryItemsLabel").text.contains(">"), "Inventory panel shows selected item")
 	input_controller._toggle_inventory_panel()
 	await process_frame
 	_assert(not hud.get_node("InventoryPanel").visible, "Inventory toggle closes inventory panel")
@@ -107,15 +110,47 @@ func _run() -> void:
 	input_controller._toggle_spellbook_panel()
 	await process_frame
 	_assert(hud.get_node("SpellbookPanel").visible, "Spellbook toggle opens spellbook panel")
-	_assert(hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/KnownSpellsLabel").text.contains("Fireball"), "Spellbook shows known spells")
+	_assert(hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/PageStatusLabel").text.contains("No pages"), "Spellbook shows empty authored state")
+	var blank_pages_before: int = int(inventory_system.get_items().get("Blank Page", 0))
+	var ink_before: int = int(inventory_system.get_items().get("Ink Vial", 0))
+	input_controller._create_spellbook_page()
+	await process_frame
+	_assert(spellbook_system.get_page_count() == 1, "Spellbook can author a page from inventory materials")
+	_assert(int(inventory_system.get_items().get("Blank Page", 0)) == blank_pages_before - 1, "Authoring consumes a blank page")
+	_assert(int(inventory_system.get_items().get("Ink Vial", 0)) == ink_before - 1, "Authoring consumes ink")
+	var title_edit: LineEdit = hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/TitleEdit")
+	var incantation_edit: LineEdit = hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/IncantationEdit")
+	var effect_button: OptionButton = hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/EffectOptionButton")
 	var notes_edit: TextEdit = hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/NotesEdit")
+	title_edit.text = "Ash Lance"
+	hud._on_spellbook_title_changed(title_edit.text)
+	incantation_edit.text = "ves tor"
+	hud._on_spellbook_incantation_changed(incantation_edit.text)
+	effect_button.select(1)
+	hud._on_spellbook_effect_selected(1)
 	notes_edit.text = "Fireball blooms wider near wood."
 	hud._on_spellbook_notes_text_changed()
 	await process_frame
-	_assert(spellbook_system.get_notes() == "Fireball blooms wider near wood.", "Spellbook notes persist to player state")
+	_assert(spellbook_system.get_selected_page().get("title", "") == "Ash Lance", "Spellbook page stores custom spell title")
+	_assert(spellbook_system.get_selected_page().get("incantation", "") == "VES TOR", "Spellbook page stores custom incantation")
+	_assert(spellbook_system.get_selected_page().get("effect_id", "") == "fireball", "Spellbook page stores selected effect")
+	_assert(spellbook_system.get_selected_page().get("notes", "") == "Fireball blooms wider near wood.", "Spellbook notes persist per page")
+	_assert(hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/DiagramHintLabel").text.contains("triangle"), "Spellbook shows effect diagram requirement")
 	input_controller._toggle_spellbook_panel()
 	await process_frame
 	_assert(not hud.get_node("SpellbookPanel").visible, "Spellbook toggle closes spellbook panel")
+
+	spellbook_system.create_page()
+	spellbook_system.update_selected_page_title("Cinder Snap")
+	spellbook_system.update_selected_page_incantation("ves")
+	spellbook_system.update_selected_page_effect("spark")
+	spellbook_system.update_selected_page_notes("Short ignition test.")
+	spellbook_system.create_page()
+	spellbook_system.update_selected_page_title("Camp Ember")
+	spellbook_system.update_selected_page_incantation("ves dum")
+	spellbook_system.update_selected_page_effect("bonfire")
+	spellbook_system.update_selected_page_notes("Stable field flame.")
+	await process_frame
 
 	input_controller._toggle_voice_mode()
 	await process_frame
@@ -150,11 +185,11 @@ func _run() -> void:
 	_assert(hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening") or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Armed") or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Off"), "Voice mode toggle can disarm")
 
 	energy_system.mana = 100.0
-	voice_incantation_recognizer.simulate_recognition("rock tore", "RAK TOR", 0.88)
+	voice_incantation_recognizer.simulate_recognition("ves tor", "VES TOR", 0.88)
 	await process_frame
-	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/RawInputLabel").text.ends_with("rock tore"), "Voice recognition updates raw input")
-	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/NormalizedInputLabel").text.ends_with("RAK TOR"), "Voice recognition normalizes incantation")
-	_assert(hud.get_node("MarginContainer/VBoxContainer/LastVoiceLabel").text.contains("rock tore"), "HUD shows last spoken text")
+	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/RawInputLabel").text.ends_with("ves tor"), "Voice recognition updates raw input")
+	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/NormalizedInputLabel").text.ends_with("VES TOR"), "Voice recognition normalizes incantation")
+	_assert(hud.get_node("MarginContainer/VBoxContainer/LastVoiceLabel").text.contains("ves tor"), "HUD shows last spoken text")
 	_assert(active_spells.get_child_count() == 1 and active_spells.get_child(0).name == "Fireball", "Voice recognition can cast fireball")
 	for child in active_spells.get_children():
 		child.queue_free()
@@ -181,18 +216,18 @@ func _run() -> void:
 	# Milestone 4 and 5
 	energy_system.mana = 100.0
 	energy_system.health = 100.0
-	spell_manager.submit_typed_incantation("RAK", "RAK")
+	spell_manager.submit_typed_incantation("VES", "VES")
 	await process_frame
-	_assert(active_spells.get_child_count() == 1, "RAK maps to Spark")
+	_assert(active_spells.get_child_count() == 1, "Custom spark incantation maps to Spark")
 	_assert(active_spells.get_child(0).name == "SparkEffect", "Spark visual appears")
 	for index in range(80):
 		active_spells.get_child(0)._process(0.016)
 	await process_frame
 	_assert(active_spells.get_child_count() == 0, "Spark visual disappears")
 
-	spell_manager.submit_typed_incantation("RAK TOR", "RAK TOR")
+	spell_manager.submit_typed_incantation("VES TOR", "VES TOR")
 	await process_frame
-	_assert(active_spells.get_child_count() == 1, "RAK TOR maps to Fireball")
+	_assert(active_spells.get_child_count() == 1, "Custom fireball incantation maps to Fireball")
 	var fireball: Node3D = active_spells.get_child(0)
 	var fireball_start: Vector3 = fireball.global_position
 	fireball._process(0.5)
@@ -200,9 +235,9 @@ func _run() -> void:
 	fireball.queue_free()
 	await process_frame
 
-	spell_manager.submit_typed_incantation("RAK DUM", "RAK DUM")
+	spell_manager.submit_typed_incantation("VES DUM", "VES DUM")
 	await process_frame
-	_assert(active_spells.get_child_count() == 1, "RAK DUM maps to Bonfire")
+	_assert(active_spells.get_child_count() == 1, "Custom bonfire incantation maps to Bonfire")
 	_assert(active_spells.get_child(0).name == "Bonfire", "Bonfire appears")
 	active_spells.get_child(0).queue_free()
 	await process_frame
@@ -215,7 +250,7 @@ func _run() -> void:
 
 	energy_system.mana = 10.0
 	energy_system.health = 100.0
-	spell_manager.submit_typed_incantation("RAK TOR", "RAK TOR")
+	spell_manager.submit_typed_incantation("VES TOR", "VES TOR")
 	await process_frame
 	_assert(energy_system.mana < 10.0, "Mana is spent")
 	_assert(energy_system.health < 100.0, "Health is drained if mana is insufficient")
@@ -225,7 +260,7 @@ func _run() -> void:
 
 	energy_system.mana = 0.0
 	energy_system.health = 10.0
-	spell_manager.submit_typed_incantation("RAK TOR", "RAK TOR")
+	spell_manager.submit_typed_incantation("VES TOR", "VES TOR")
 	await process_frame
 	_assert(debug_panel.get_node("MarginContainer/VBoxContainer/MessageLabel").text.contains("Not enough mana or health"), "Spell fails if health cannot pay")
 	for child in active_spells.get_children():
@@ -235,6 +270,38 @@ func _run() -> void:
 	_assert(wood_piles.get_child_count() >= 1, "WoodPile exists")
 	_assert(target_dummies.get_child_count() >= 1, "TargetDummy exists")
 	_assert(hostiles.get_child_count() >= 1, "Hostile enemy exists")
+	_assert(pickups.get_child_count() >= 1, "Pickup items exist in the world")
+	var pickup_inventory_before: int = int(inventory_system.get_items().get("Kindling", 0))
+	var nearby_pickup: Node3D = pickups.get_child(0)
+	player.global_position = nearby_pickup.global_position + Vector3(0.0, 0.75, 0.0)
+	input_controller._pickup_nearest_item()
+	await process_frame
+	_assert(int(inventory_system.get_items().get("Kindling", 0)) > pickup_inventory_before, "Nearby pickup adds item to inventory")
+	input_controller._toggle_inventory_panel()
+	await process_frame
+	inventory_system.select_next_item()
+	while inventory_system.get_selected_item_name() != "Kindling":
+		inventory_system.select_next_item()
+	energy_system.mana = 60.0
+	var mana_before_kindling: float = player.get_mana()
+	input_controller._use_selected_inventory_item()
+	await process_frame
+	_assert(player.get_mana() > mana_before_kindling, "Using kindling restores mana")
+	while inventory_system.get_selected_item_name() != "Charcoal":
+		inventory_system.select_next_item()
+	voice_power_tracker.reset()
+	var voice_before_charcoal: float = voice_power_tracker.get_voice_power()
+	input_controller._use_selected_inventory_item()
+	await process_frame
+	_assert(voice_power_tracker.get_voice_power() > voice_before_charcoal, "Using charcoal boosts voice power")
+	while inventory_system.get_selected_item_name() != "Blank Page":
+		inventory_system.select_next_item()
+	var dropped_pickups_before: int = pickups.get_child_count()
+	input_controller._drop_selected_inventory_item()
+	await process_frame
+	_assert(pickups.get_child_count() == dropped_pickups_before + 1, "Dropping an item spawns a world pickup")
+	input_controller._toggle_inventory_panel()
+	await process_frame
 	var wood_before: float = wood_piles.get_child(0).fuel_amount
 	var bonfire_scene: PackedScene = load("res://scenes/effects/Bonfire.tscn")
 	var bonfire_near: Node3D = bonfire_scene.instantiate()

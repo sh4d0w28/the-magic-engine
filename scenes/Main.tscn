@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://d2itcma2pfpc7"]
+[gd_scene load_steps=8 format=3 uid="uid://d2itcma2pfpc7"]
 
 [ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_wj1b0"]
 [ext_resource type="Script" path="res://scripts/Main.gd" id="1_ucbq2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/input/InputController.gd" id="4_7yyh0"]
 [ext_resource type="Script" path="res://scripts/magic/SpellManager.gd" id="5_4a5sh"]
 [ext_resource type="PackedScene" path="res://scenes/environment/WoodPile.tscn" id="6_4s32g"]
+[ext_resource type="PackedScene" path="res://scenes/environment/PickupItem.tscn" id="7_x2n8v"]
 [ext_resource type="Script" path="res://scripts/input/VoicePowerTracker.gd" id="7_7lgpd"]
 [ext_resource type="Script" path="res://scripts/input/VoiceIncantationRecognizer.gd" id="8_jo3an"]
 [ext_resource type="Script" path="res://scripts/input/DiagramRecognizer.gd" id="8_jdli3"]
@@ -42,6 +43,8 @@ shape = SubResource("BoxShape3D_ground")
 
 [node name="Hostiles" type="Node3D" parent="World/Environment"]
 
+[node name="Pickups" type="Node3D" parent="World/Environment"]
+
 [node name="WoodPileA" parent="World/Environment/WoodPiles" instance=ExtResource("6_4s32g")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
 
@@ -59,6 +62,21 @@ transform = Transform3D(1, 0, 0, 0, 0.939693, 0.34202, 0, -0.34202, 0.939693, 3.
 
 [node name="HostileEnemyA" parent="World/Environment/Hostiles" instance=ExtResource("11_sxuyt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, -10.5)
+
+[node name="PickupKindling" parent="World/Environment/Pickups" instance=ExtResource("7_x2n8v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.3, 1.2)
+item_name = "Kindling"
+amount = 2
+
+[node name="PickupPage" parent="World/Environment/Pickups" instance=ExtResource("7_x2n8v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.7, 0.3, 1.4)
+item_name = "Blank Page"
+amount = 1
+
+[node name="PickupInk" parent="World/Environment/Pickups" instance=ExtResource("7_x2n8v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.3, 2.3)
+item_name = "Ink Vial"
+amount = 1
 
 [node name="Sun" type="DirectionalLight3D" parent="World"]
 transform = Transform3D(0.707107, -0.612372, 0.353553, 0, 0.5, 0.866025, -0.707107, -0.612372, 0.353553, 0, 8, 0)

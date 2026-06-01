@@ -46,6 +46,11 @@ func restore_mana(delta: float) -> void:
 	_emit_changed()
 
 
+func heal(amount: float) -> void:
+	health = clampf(health + maxf(amount, 0.0), 0.0, max_health)
+	_emit_changed()
+
+
 func apply_damage(amount: float) -> bool:
 	var requested_amount: float = maxf(amount, 0.0)
 	health = clampf(health - requested_amount, 0.0, max_health)
