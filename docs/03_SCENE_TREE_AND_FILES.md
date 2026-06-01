@@ -30,6 +30,7 @@ Main (Node3D)
     ActiveSpells (Node3D)
   InputController (Node)
     VoicePowerTracker (Node)
+    VoiceIncantationRecognizer (Node)
     DiagramRecognizer (Node)
   UI (CanvasLayer)
     HUD (Control)
@@ -47,6 +48,7 @@ scripts/magic/MagicEngine.gd
 scripts/magic/SpellManager.gd
 scripts/input/InputController.gd
 scripts/input/VoicePowerTracker.gd
+scripts/input/VoiceIncantationRecognizer.gd
 scripts/input/DiagramRecognizer.gd
 scripts/effects/SparkEffect.gd
 scripts/effects/Fireball.gd
@@ -70,6 +72,7 @@ The project is no longer just a scene shell. The current `Main.tscn` functions a
 - visible target reticle and ground marker,
 - target dummy health/destruction loop,
 - hostile chase/contact damage loop,
+- microphone voice incantation loop,
 - wood fuel interaction loop,
 - combat HUD score/feed,
 - player defeat and automatic encounter reset,

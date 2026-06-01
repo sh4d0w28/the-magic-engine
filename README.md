@@ -5,6 +5,7 @@ This repository contains the design package and the in-repo implementation for t
 The current state is a playable local combat sandbox in Godot 4.6.3:
 - camera-relative movement with mouse orbit,
 - typed fire incantations,
+- microphone voice incantations,
 - simulated voice power,
 - simple diagram recognition,
 - target dummies with health, destruction, score, and combat feedback,
@@ -47,6 +48,7 @@ Phase 1 is a small local prototype:
 - `WASD` - move
 - Hold `LMB` + move mouse - orbit camera
 - `Enter` - open/submit typed incantation
+- `M` - listen for a microphone incantation
 - `Escape` - cancel typed incantation
 - Hold `V` - charge voice power
 - Hold `RMB` - draw diagram
@@ -56,10 +58,15 @@ Phase 1 is a small local prototype:
 
 1. Move around the arena.
 2. Aim using the mouse reticle and ground target marker.
-3. Type `RAK`, `RAK TOR`, or `RAK DUM`.
+3. Type `RAK`, `RAK TOR`, or `RAK DUM`, or press `M` and speak an incantation.
 4. Hit target dummies to test direct hits, splash, and destruction.
 5. Kite hostile enemies and verify contact damage plus reset flow on defeat.
 6. Use bonfires and sparks near wood to test fuel behavior.
+
+## Voice Notes
+
+- The current microphone backend uses Windows `System.Speech`.
+- The Godot-side recognizer wrapper is backend-shaped, so a cross-platform speech engine can replace it later without changing the spell flow.
 
 ## Validation
 
