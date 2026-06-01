@@ -10,6 +10,7 @@ signal input_submitted(text: String)
 @onready var _voice_power_label: Label = $MarginContainer/VBoxContainer/VoicePowerLabel
 @onready var _mic_status_label: Label = $MarginContainer/VBoxContainer/MicStatusLabel
 @onready var _mic_level_bar: ProgressBar = $MarginContainer/VBoxContainer/MicLevelBar
+@onready var _voice_window_label: Label = $MarginContainer/VBoxContainer/VoiceWindowLabel
 @onready var _last_voice_label: Label = $MarginContainer/VBoxContainer/LastVoiceLabel
 @onready var _combat_feed_label: Label = $MarginContainer/VBoxContainer/CombatFeedLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
@@ -60,6 +61,13 @@ func set_mic_mode_enabled(is_enabled: bool) -> void:
 
 func set_mic_level(level: float) -> void:
 	_mic_level_bar.value = clampf(level, 0.0, 1.0)
+
+
+func set_voice_listen_window(seconds_remaining: float) -> void:
+	if seconds_remaining <= 0.0:
+		_voice_window_label.text = "Voice Window: -"
+		return
+	_voice_window_label.text = "Voice Window: %.1fs" % seconds_remaining
 
 
 func set_last_voice_text(raw_text: String, normalized_input: String) -> void:

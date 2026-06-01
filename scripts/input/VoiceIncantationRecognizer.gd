@@ -3,9 +3,11 @@ extends Node
 signal listening_started
 signal listening_stopped
 signal mic_level_changed(level: float)
+signal listen_time_changed(seconds_remaining: float)
 signal transcript_updated(raw_text: String, normalized_input: String)
 signal recognition_completed(result: Dictionary)
 signal recognition_failed(message: String)
+signal listen_timeout
 
 @export var timeout_seconds: int = 5
 @export var minimum_confidence: float = 0.55
@@ -17,14 +19,17 @@ var _is_listening := false
 var _testing_mode := false
 var _mic_player: AudioStreamPlayer
 var _capture_effect: AudioEffectCapture
+var _listen_elapsed_seconds := 0.0
 
 
 func _ready() -> void:
 	_setup_mic_monitor()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _is_listening and not _testing_mode:
+		_listen_elapsed_seconds += delta
+		listen_time_changed.emit(maxf(float(timeout_seconds) - _listen_elapsed_seconds, 0.0))
 		mic_level_changed.emit(_consume_mic_level())
 	if _worker_thread != null and _is_listening and not _worker_thread.is_alive():
 		var result: Dictionary = _worker_thread.wait_to_finish()
@@ -43,7 +48,9 @@ func start_listening() -> bool:
 		return false
 
 	_is_listening = true
+	_listen_elapsed_seconds = 0.0
 	_start_mic_monitor()
+	listen_time_changed.emit(float(timeout_seconds))
 	listening_started.emit()
 	if _testing_mode:
 		return true
@@ -68,6 +75,7 @@ func set_testing_mode(is_enabled: bool) -> void:
 
 func simulate_recognition(raw_input: String, normalized_input: String, confidence: float = 1.0) -> void:
 	_is_listening = false
+	_listen_elapsed_seconds = 0.0
 	_stop_mic_monitor()
 	_emit_result({
 		"success": true,
@@ -81,6 +89,7 @@ func simulate_recognition(raw_input: String, normalized_input: String, confidenc
 
 func simulate_failure(message: String) -> void:
 	_is_listening = false
+	_listen_elapsed_seconds = 0.0
 	_stop_mic_monitor()
 	_emit_result({
 		"success": false,
@@ -139,8 +148,11 @@ func _run_recognition_job() -> Dictionary:
 
 func _emit_result(result: Dictionary) -> void:
 	if not bool(result.get("success", false)):
+		if str(result.get("status", "")) == "timeout":
+			listen_timeout.emit()
 		listening_stopped.emit()
 		mic_level_changed.emit(0.0)
+		listen_time_changed.emit(0.0)
 		recognition_failed.emit(str(result.get("error", "Voice recognition failed.")))
 		return
 
@@ -148,6 +160,7 @@ func _emit_result(result: Dictionary) -> void:
 	if confidence < minimum_confidence:
 		listening_stopped.emit()
 		mic_level_changed.emit(0.0)
+		listen_time_changed.emit(0.0)
 		recognition_failed.emit("Voice confidence too low (%.2f)." % confidence)
 		return
 
@@ -157,6 +170,7 @@ func _emit_result(result: Dictionary) -> void:
 	)
 	listening_stopped.emit()
 	mic_level_changed.emit(0.0)
+	listen_time_changed.emit(0.0)
 	recognition_completed.emit(result)
 
 

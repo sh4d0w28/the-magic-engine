@@ -99,6 +99,9 @@ func _run() -> void:
 		or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Armed"),
 		"Voice mode arm starts listening"
 	)
+	voice_incantation_recognizer.listen_time_changed.emit(4.2)
+	await process_frame
+	_assert(hud.get_node("MarginContainer/VBoxContainer/VoiceWindowLabel").text.contains("4.2"), "HUD shows voice listen window")
 	voice_incantation_recognizer.listening_stopped.emit()
 	await process_frame
 	voice_incantation_recognizer.recognition_completed.emit({
@@ -140,6 +143,15 @@ func _run() -> void:
 	voice_incantation_recognizer.listening_stopped.emit()
 	await process_frame
 	_assert(hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Off"), "HUD shows mic off when disarmed")
+
+	input_controller._toggle_voice_mode()
+	await process_frame
+	voice_incantation_recognizer.simulate_failure("Timed out waiting for microphone input.")
+	await process_frame
+	await process_frame
+	_assert(hud.get_node("MarginContainer/VBoxContainer/StatusLabel").text.contains("Rearming") or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening"), "Voice timeout shows rearm feedback")
+	input_controller._toggle_voice_mode()
+	await process_frame
 
 	# Milestone 4 and 5
 	energy_system.mana = 100.0

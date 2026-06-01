@@ -16,9 +16,11 @@ func _ready() -> void:
 	_voice_incantation_recognizer.listening_started.connect(_on_voice_listening_started)
 	_voice_incantation_recognizer.listening_stopped.connect(_on_voice_listening_stopped)
 	_voice_incantation_recognizer.mic_level_changed.connect(_on_voice_mic_level_changed)
+	_voice_incantation_recognizer.listen_time_changed.connect(_on_voice_listen_time_changed)
 	_voice_incantation_recognizer.transcript_updated.connect(_on_voice_transcript_updated)
 	_voice_incantation_recognizer.recognition_completed.connect(_on_voice_recognition_completed)
 	_voice_incantation_recognizer.recognition_failed.connect(_on_voice_recognition_failed)
+	_voice_incantation_recognizer.listen_timeout.connect(_on_voice_listen_timeout)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
 	get_tree().set_meta("show_debug_hitboxes", false)
 	call_deferred("_initialize_ui_state")
@@ -30,6 +32,7 @@ func _initialize_ui_state() -> void:
 	_hud.set_mic_mode_enabled(false)
 	_hud.set_mic_listening(false)
 	_hud.set_mic_level(0.0)
+	_hud.set_voice_listen_window(0.0)
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
@@ -97,10 +100,15 @@ func _on_voice_listening_started() -> void:
 func _on_voice_listening_stopped() -> void:
 	_hud.set_mic_listening(false)
 	_hud.set_mic_level(0.0)
+	_hud.set_voice_listen_window(0.0)
 
 
 func _on_voice_mic_level_changed(level: float) -> void:
 	_hud.set_mic_level(level)
+
+
+func _on_voice_listen_time_changed(seconds_remaining: float) -> void:
+	_hud.set_voice_listen_window(seconds_remaining)
 
 
 func _on_voice_transcript_updated(raw_text: String, normalized_input: String) -> void:
@@ -118,6 +126,15 @@ func _on_voice_recognition_failed(message: String) -> void:
 	_hud.set_status("Voice recognition failed.")
 	_debug_panel.set_message(message)
 	_queue_voice_rearm_if_needed()
+
+
+func _on_voice_listen_timeout() -> void:
+	if _voice_mode_enabled:
+		_hud.set_status("Voice listen timed out. Rearming...")
+		_debug_panel.set_message("Voice listen timed out. Rearming.")
+	else:
+		_hud.set_status("Voice listen timed out.")
+		_debug_panel.set_message("Voice listen timed out.")
 
 
 func _submit_incantation(raw_input: String, normalized_input: String, input_type: String, debug_message: String) -> void:
@@ -156,6 +173,7 @@ func _set_voice_mode_enabled(is_enabled: bool) -> void:
 	_hud.set_mic_mode_enabled(is_enabled)
 	if not is_enabled:
 		_hud.set_mic_level(0.0)
+		_hud.set_voice_listen_window(0.0)
 
 
 func _queue_voice_rearm_if_needed() -> void:
