@@ -37,6 +37,7 @@ func _run() -> void:
 	var input_controller: Node = main.get_node("InputController")
 	var spell_manager: Node = main.get_node("SpellManager")
 	var energy_system: Node = player.get_node("EnergySystem")
+	var inventory_system: Node = player.get_node("InventorySystem")
 	var active_spells: Node3D = spell_manager.get_node("ActiveSpells")
 	var wood_piles: Node = world.get_node("Environment/WoodPiles")
 	var target_dummies: Node = world.get_node("Environment/TargetDummies")
@@ -62,6 +63,7 @@ func _run() -> void:
 
 	_assert(is_equal_approx(player.get_health(), 100.0), "Health starts at 100")
 	_assert(is_equal_approx(player.get_mana(), 100.0), "Mana starts at 100")
+	_assert(inventory_system.get_items().has("Kindling"), "Inventory starts with starter items")
 	energy_system.mana = 50.0
 	energy_system._process(1.0)
 	_assert(energy_system.mana > 50.0, "Mana regenerates")
@@ -91,6 +93,14 @@ func _run() -> void:
 	escape_event.keycode = KEY_ESCAPE
 	input_controller._unhandled_input(escape_event)
 	_assert(not hud.is_input_open(), "Escape cancels input")
+
+	input_controller._toggle_inventory_panel()
+	await process_frame
+	_assert(hud.get_node("InventoryPanel").visible, "Inventory toggle opens inventory panel")
+	_assert(hud.get_node("InventoryPanel/MarginContainer/VBoxContainer/InventoryItemsLabel").text.contains("Kindling"), "Inventory panel shows starter items")
+	input_controller._toggle_inventory_panel()
+	await process_frame
+	_assert(not hud.get_node("InventoryPanel").visible, "Inventory toggle closes inventory panel")
 
 	input_controller._toggle_voice_mode()
 	await process_frame

@@ -14,6 +14,8 @@ signal input_submitted(text: String)
 @onready var _last_voice_label: Label = $MarginContainer/VBoxContainer/LastVoiceLabel
 @onready var _combat_feed_label: Label = $MarginContainer/VBoxContainer/CombatFeedLabel
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
+@onready var _inventory_panel: PanelContainer = $InventoryPanel
+@onready var _inventory_items_label: Label = $InventoryPanel/MarginContainer/VBoxContainer/InventoryItemsLabel
 @onready var _aim_reticle: Control = $AimReticle
 
 var _mic_mode_enabled := false
@@ -29,7 +31,7 @@ func _ready() -> void:
 		set_health_and_mana(player.get_health(), player.get_mana())
 	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
 	_combat_feed_label.modulate = Color(1.0, 0.9, 0.7, 0.95)
-	_controls_label.text = "Move: WASD  Camera: Hold LMB + Mouse  Type: Enter  Speak: M  Voice Power: Hold V  Diagram: Hold RMB  Debug: F3"
+	_controls_label.text = "Move: WASD  Camera: Hold LMB + Mouse  Type: Enter  Speak: M  Inventory: I  Voice Power: Hold V  Diagram: Hold RMB  Debug: F3"
 
 
 func _process(_delta: float) -> void:
@@ -83,6 +85,32 @@ func set_score(score: int) -> void:
 
 func set_combat_feed(message: String) -> void:
 	_combat_feed_label.text = "Combat: %s" % message
+
+
+func set_inventory_items(items: Dictionary) -> void:
+	if items.is_empty():
+		_inventory_items_label.text = "No items."
+		return
+
+	var lines: Array[String] = []
+	var item_names: Array = items.keys()
+	item_names.sort()
+	for item_name in item_names:
+		lines.append("%s x%d" % [item_name, int(items[item_name])])
+	_inventory_items_label.text = "\n".join(lines)
+
+
+func toggle_inventory_panel() -> bool:
+	_inventory_panel.visible = not _inventory_panel.visible
+	return _inventory_panel.visible
+
+
+func close_inventory_panel() -> void:
+	_inventory_panel.hide()
+
+
+func is_inventory_panel_open() -> bool:
+	return _inventory_panel.visible
 
 
 func open_input() -> void:

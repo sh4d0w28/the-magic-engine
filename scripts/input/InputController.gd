@@ -6,6 +6,7 @@ extends Node
 @onready var _voice_power_tracker: Node = $VoicePowerTracker
 @onready var _voice_incantation_recognizer: Node = $VoiceIncantationRecognizer
 @onready var _diagram_recognizer: Node = $DiagramRecognizer
+@onready var _inventory_system: Node = $"../Player/InventorySystem"
 
 var _voice_mode_enabled := false
 
@@ -22,6 +23,7 @@ func _ready() -> void:
 	_voice_incantation_recognizer.recognition_failed.connect(_on_voice_recognition_failed)
 	_voice_incantation_recognizer.listen_timeout.connect(_on_voice_listen_timeout)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
+	_inventory_system.inventory_changed.connect(_on_inventory_changed)
 	get_tree().set_meta("show_debug_hitboxes", false)
 	call_deferred("_initialize_ui_state")
 
@@ -33,6 +35,7 @@ func _initialize_ui_state() -> void:
 	_hud.set_mic_listening(false)
 	_hud.set_mic_level(0.0)
 	_hud.set_voice_listen_window(0.0)
+	_on_inventory_changed(_inventory_system.get_items())
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
@@ -49,6 +52,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif event.is_action_pressed("voice_incantation") and not _hud.is_input_open():
 			_toggle_voice_mode()
+			get_viewport().set_input_as_handled()
+		elif event.is_action_pressed("toggle_inventory"):
+			_toggle_inventory_panel()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_ESCAPE and _hud.is_input_open():
 			_hud.close_input()
@@ -79,6 +85,10 @@ func _on_voice_power_changed(voice_power: float) -> void:
 
 func _on_diagram_changed(diagram_result: Dictionary) -> void:
 	_debug_panel.set_diagram_result(diagram_result)
+
+
+func _on_inventory_changed(items: Dictionary) -> void:
+	_hud.set_inventory_items(items)
 
 
 func _toggle_debug_hitboxes() -> void:
@@ -150,6 +160,20 @@ func _submit_incantation(raw_input: String, normalized_input: String, input_type
 		_spell_manager.submit_voice_incantation(raw_input, normalized_input)
 	elif _spell_manager.has_method("submit_typed_incantation"):
 		_spell_manager.submit_typed_incantation(raw_input, normalized_input)
+
+
+func _toggle_inventory_panel() -> void:
+	if _hud.is_input_open():
+		_hud.close_input()
+	var is_open: bool = _hud.toggle_inventory_panel()
+	if is_open:
+		if _voice_mode_enabled:
+			_set_voice_mode_enabled(false)
+		_hud.set_status("Inventory opened.")
+		_debug_panel.set_message("Inventory panel opened.")
+	else:
+		_hud.set_status("Inventory closed.")
+		_debug_panel.set_message("Inventory panel closed.")
 
 
 func _toggle_voice_mode() -> void:

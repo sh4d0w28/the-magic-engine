@@ -80,6 +80,36 @@ custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 placeholder_text = "Type incantation and press Enter"
 
+[node name="InventoryPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -360.0
+offset_top = 320.0
+offset_right = -16.0
+offset_bottom = 520.0
+grow_horizontal = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="InventoryPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InventoryPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="InventoryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Inventory"
+
+[node name="InventoryItemsLabel" type="Label" parent="InventoryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "No items."
+autowrap_mode = 3
+
 [node name="AimReticle" type="Control" parent="."]
 layout_mode = 0
 offset_left = -10.0
