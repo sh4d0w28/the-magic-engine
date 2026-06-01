@@ -38,6 +38,7 @@ func _run() -> void:
 	var spell_manager: Node = main.get_node("SpellManager")
 	var energy_system: Node = player.get_node("EnergySystem")
 	var inventory_system: Node = player.get_node("InventorySystem")
+	var spellbook_system: Node = player.get_node("SpellbookSystem")
 	var active_spells: Node3D = spell_manager.get_node("ActiveSpells")
 	var wood_piles: Node = world.get_node("Environment/WoodPiles")
 	var target_dummies: Node = world.get_node("Environment/TargetDummies")
@@ -64,6 +65,7 @@ func _run() -> void:
 	_assert(is_equal_approx(player.get_health(), 100.0), "Health starts at 100")
 	_assert(is_equal_approx(player.get_mana(), 100.0), "Mana starts at 100")
 	_assert(inventory_system.get_items().has("Kindling"), "Inventory starts with starter items")
+	_assert(spellbook_system.get_known_spells().size() >= 3, "Spellbook starts with known spells")
 	energy_system.mana = 50.0
 	energy_system._process(1.0)
 	_assert(energy_system.mana > 50.0, "Mana regenerates")
@@ -101,6 +103,19 @@ func _run() -> void:
 	input_controller._toggle_inventory_panel()
 	await process_frame
 	_assert(not hud.get_node("InventoryPanel").visible, "Inventory toggle closes inventory panel")
+
+	input_controller._toggle_spellbook_panel()
+	await process_frame
+	_assert(hud.get_node("SpellbookPanel").visible, "Spellbook toggle opens spellbook panel")
+	_assert(hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/KnownSpellsLabel").text.contains("Fireball"), "Spellbook shows known spells")
+	var notes_edit: TextEdit = hud.get_node("SpellbookPanel/MarginContainer/VBoxContainer/NotesEdit")
+	notes_edit.text = "Fireball blooms wider near wood."
+	hud._on_spellbook_notes_text_changed()
+	await process_frame
+	_assert(spellbook_system.get_notes() == "Fireball blooms wider near wood.", "Spellbook notes persist to player state")
+	input_controller._toggle_spellbook_panel()
+	await process_frame
+	_assert(not hud.get_node("SpellbookPanel").visible, "Spellbook toggle closes spellbook panel")
 
 	input_controller._toggle_voice_mode()
 	await process_frame
@@ -331,6 +346,8 @@ func _run() -> void:
 	world.get_node("Environment/TargetDummies").add_child(destroy_dummy)
 	destroy_dummy.global_position = Vector3(4.0, 0.0, -4.0)
 	await process_frame
+	var score_label: Label = hud.get_node("MarginContainer/VBoxContainer/ScoreLabel")
+	var score_before_destroy: int = int(score_label.text.trim_prefix("Score: "))
 	var destroy_dummy_body: MeshInstance3D = destroy_dummy.get_node("BodyMesh")
 	var destroy_dummy_health_fill: MeshInstance3D = destroy_dummy.get_node("HealthBarPivot/HealthBarFill")
 	var body_color_before: Color = destroy_dummy_body.get_active_material(0).albedo_color
@@ -353,19 +370,24 @@ func _run() -> void:
 			break
 		destroy_dummy._process(0.016)
 	await process_frame
+	var score_after_destroy: int = int(score_label.text.trim_prefix("Score: "))
 	_assert(not is_instance_valid(destroy_dummy) or destroy_dummy.is_queued_for_deletion(), "Target dummy is destroyed at zero health")
-	_assert(hud.get_node("MarginContainer/VBoxContainer/ScoreLabel").text.ends_with("1"), "Destroying dummy increases score")
+	_assert(score_after_destroy > score_before_destroy, "Destroying dummy increases score")
 	_assert(hud.get_node("MarginContainer/VBoxContainer/CombatFeedLabel").text.contains("Dummy destroyed"), "Combat feed reports dummy destruction")
 
+	main.reset_encounter()
+	await process_frame
+	await process_frame
+	var refreshed_hostile: CharacterBody3D = hostiles.get_child(0)
 	player.restore_to_full()
 	var player_health_before_hit: float = player.get_health()
-	hostile_enemy.force_attack_player()
+	refreshed_hostile.force_attack_player()
 	await process_frame
 	_assert(player.get_health() < player_health_before_hit, "Hostile enemy damages player on contact")
 
 	player.restore_to_full()
 	player.take_damage(88.0)
-	hostile_enemy.force_attack_player()
+	refreshed_hostile.force_attack_player()
 	await process_frame
 	main._process(float(main.get("encounter_reset_delay_seconds")) + 0.1)
 	await process_frame

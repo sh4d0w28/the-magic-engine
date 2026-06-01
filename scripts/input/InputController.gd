@@ -7,12 +7,14 @@ extends Node
 @onready var _voice_incantation_recognizer: Node = $VoiceIncantationRecognizer
 @onready var _diagram_recognizer: Node = $DiagramRecognizer
 @onready var _inventory_system: Node = $"../Player/InventorySystem"
+@onready var _spellbook_system: Node = $"../Player/SpellbookSystem"
 
 var _voice_mode_enabled := false
 
 
 func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
+	_hud.spellbook_notes_changed.connect(_on_spellbook_notes_changed)
 	_voice_power_tracker.voice_power_changed.connect(_on_voice_power_changed)
 	_voice_incantation_recognizer.listening_started.connect(_on_voice_listening_started)
 	_voice_incantation_recognizer.listening_stopped.connect(_on_voice_listening_stopped)
@@ -24,6 +26,8 @@ func _ready() -> void:
 	_voice_incantation_recognizer.listen_timeout.connect(_on_voice_listen_timeout)
 	_diagram_recognizer.diagram_changed.connect(_on_diagram_changed)
 	_inventory_system.inventory_changed.connect(_on_inventory_changed)
+	_spellbook_system.notes_changed.connect(_on_spellbook_notes_loaded)
+	_spellbook_system.known_spells_changed.connect(_on_known_spells_changed)
 	get_tree().set_meta("show_debug_hitboxes", false)
 	call_deferred("_initialize_ui_state")
 
@@ -36,6 +40,8 @@ func _initialize_ui_state() -> void:
 	_hud.set_mic_level(0.0)
 	_hud.set_voice_listen_window(0.0)
 	_on_inventory_changed(_inventory_system.get_items())
+	_on_spellbook_notes_loaded(_spellbook_system.get_notes())
+	_on_known_spells_changed(_spellbook_system.get_known_spells())
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
 	_on_diagram_changed(_diagram_recognizer.get_diagram_result())
 
@@ -55,6 +61,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif event.is_action_pressed("toggle_inventory"):
 			_toggle_inventory_panel()
+			get_viewport().set_input_as_handled()
+		elif event.is_action_pressed("toggle_spellbook"):
+			_toggle_spellbook_panel()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_ESCAPE and _hud.is_input_open():
 			_hud.close_input()
@@ -89,6 +98,18 @@ func _on_diagram_changed(diagram_result: Dictionary) -> void:
 
 func _on_inventory_changed(items: Dictionary) -> void:
 	_hud.set_inventory_items(items)
+
+
+func _on_known_spells_changed(spells: Array[Dictionary]) -> void:
+	_hud.set_known_spells(spells)
+
+
+func _on_spellbook_notes_loaded(notes: String) -> void:
+	_hud.set_spellbook_notes(notes)
+
+
+func _on_spellbook_notes_changed(notes: String) -> void:
+	_spellbook_system.set_notes(notes)
 
 
 func _toggle_debug_hitboxes() -> void:
@@ -165,6 +186,8 @@ func _submit_incantation(raw_input: String, normalized_input: String, input_type
 func _toggle_inventory_panel() -> void:
 	if _hud.is_input_open():
 		_hud.close_input()
+	if _hud.is_spellbook_panel_open():
+		_hud.close_spellbook_panel()
 	var is_open: bool = _hud.toggle_inventory_panel()
 	if is_open:
 		if _voice_mode_enabled:
@@ -174,6 +197,22 @@ func _toggle_inventory_panel() -> void:
 	else:
 		_hud.set_status("Inventory closed.")
 		_debug_panel.set_message("Inventory panel closed.")
+
+
+func _toggle_spellbook_panel() -> void:
+	if _hud.is_input_open():
+		_hud.close_input()
+	if _hud.is_inventory_panel_open():
+		_hud.close_inventory_panel()
+	var is_open: bool = _hud.toggle_spellbook_panel()
+	if is_open:
+		if _voice_mode_enabled:
+			_set_voice_mode_enabled(false)
+		_hud.set_status("Spellbook opened.")
+		_debug_panel.set_message("Spellbook panel opened.")
+	else:
+		_hud.set_status("Spellbook closed.")
+		_debug_panel.set_message("Spellbook panel closed.")
 
 
 func _toggle_voice_mode() -> void:

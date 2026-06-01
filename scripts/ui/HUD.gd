@@ -1,6 +1,7 @@
 extends Control
 
 signal input_submitted(text: String)
+signal spellbook_notes_changed(notes: String)
 
 @onready var _health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
 @onready var _mana_label: Label = $MarginContainer/VBoxContainer/ManaLabel
@@ -16,6 +17,9 @@ signal input_submitted(text: String)
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 @onready var _inventory_panel: PanelContainer = $InventoryPanel
 @onready var _inventory_items_label: Label = $InventoryPanel/MarginContainer/VBoxContainer/InventoryItemsLabel
+@onready var _spellbook_panel: PanelContainer = $SpellbookPanel
+@onready var _known_spells_label: Label = $SpellbookPanel/MarginContainer/VBoxContainer/KnownSpellsLabel
+@onready var _notes_edit: TextEdit = $SpellbookPanel/MarginContainer/VBoxContainer/NotesEdit
 @onready var _aim_reticle: Control = $AimReticle
 
 var _mic_mode_enabled := false
@@ -24,6 +28,7 @@ var _mic_is_listening := false
 
 func _ready() -> void:
 	_input_line.text_submitted.connect(_on_input_submitted)
+	_notes_edit.text_changed.connect(_on_spellbook_notes_text_changed)
 	_input_line.hide()
 	var player := get_tree().get_first_node_in_group("player_controller")
 	if player != null and player.has_signal("health_mana_changed"):
@@ -31,7 +36,7 @@ func _ready() -> void:
 		set_health_and_mana(player.get_health(), player.get_mana())
 	_controls_label.modulate = Color(0.85, 0.9, 1.0, 0.9)
 	_combat_feed_label.modulate = Color(1.0, 0.9, 0.7, 0.95)
-	_controls_label.text = "Move: WASD  Camera: Hold LMB + Mouse  Type: Enter  Speak: M  Inventory: I  Voice Power: Hold V  Diagram: Hold RMB  Debug: F3"
+	_controls_label.text = "Move: WASD  Camera: Hold LMB + Mouse  Type: Enter  Speak: M  Inventory: I  Spellbook: B  Voice Power: Hold V  Diagram: Hold RMB  Debug: F3"
 
 
 func _process(_delta: float) -> void:
@@ -113,6 +118,45 @@ func is_inventory_panel_open() -> bool:
 	return _inventory_panel.visible
 
 
+func set_known_spells(spells: Array[Dictionary]) -> void:
+	if spells.is_empty():
+		_known_spells_label.text = "Known spells unavailable."
+		return
+
+	var lines: Array[String] = []
+	for spell in spells:
+		lines.append("%s | %s | %s" % [
+			str(spell.get("name", "")),
+			str(spell.get("incantation", "")),
+			str(spell.get("diagram", "none"))
+		])
+	_known_spells_label.text = "\n".join(lines)
+
+
+func set_spellbook_notes(notes: String) -> void:
+	if _notes_edit.text == notes:
+		return
+	_notes_edit.text = notes
+
+
+func toggle_spellbook_panel() -> bool:
+	_spellbook_panel.visible = not _spellbook_panel.visible
+	if _spellbook_panel.visible:
+		_notes_edit.grab_focus()
+	else:
+		_notes_edit.release_focus()
+	return _spellbook_panel.visible
+
+
+func close_spellbook_panel() -> void:
+	_spellbook_panel.hide()
+	_notes_edit.release_focus()
+
+
+func is_spellbook_panel_open() -> bool:
+	return _spellbook_panel.visible
+
+
 func open_input() -> void:
 	_input_line.show()
 	_input_line.grab_focus()
@@ -136,6 +180,10 @@ func get_current_input() -> String:
 
 func _on_input_submitted(text: String) -> void:
 	input_submitted.emit(text)
+
+
+func _on_spellbook_notes_text_changed() -> void:
+	spellbook_notes_changed.emit(_notes_edit.text)
 
 
 func _update_aim_reticle() -> void:
