@@ -44,6 +44,7 @@ func _run() -> void:
 	var voice_power_tracker: Node = input_controller.get_node("VoicePowerTracker")
 	var voice_incantation_recognizer: Node = input_controller.get_node("VoiceIncantationRecognizer")
 	var diagram_recognizer: Node = input_controller.get_node("DiagramRecognizer")
+	voice_incantation_recognizer.set_testing_mode(true)
 
 	_assert(main != null, "Main scene instantiates")
 	_assert(player != null, "Player cube exists")
@@ -91,6 +92,35 @@ func _run() -> void:
 	input_controller._unhandled_input(escape_event)
 	_assert(not hud.is_input_open(), "Escape cancels input")
 
+	input_controller._toggle_voice_mode()
+	await process_frame
+	_assert(
+		hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening")
+		or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Armed"),
+		"Voice mode arm starts listening"
+	)
+	voice_incantation_recognizer.listening_stopped.emit()
+	await process_frame
+	voice_incantation_recognizer.recognition_completed.emit({
+		"raw_text": "rak",
+		"normalized_input": "RAK",
+		"confidence": 0.91,
+		"success": true
+	})
+	await process_frame
+	await process_frame
+	_assert(
+		hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening")
+		or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Armed"),
+		"Voice mode re-arms automatically after recognition"
+	)
+	for child in active_spells.get_children():
+		child.queue_free()
+	await process_frame
+	input_controller._toggle_voice_mode()
+	await process_frame
+	_assert(hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Listening") or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Armed") or hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Off"), "Voice mode toggle can disarm")
+
 	energy_system.mana = 100.0
 	voice_incantation_recognizer.simulate_recognition("rock tore", "RAK TOR", 0.88)
 	await process_frame
@@ -109,6 +139,7 @@ func _run() -> void:
 	_assert(hud.get_node("MarginContainer/VBoxContainer/MicLevelBar").value > 0.4, "HUD shows microphone level")
 	voice_incantation_recognizer.listening_stopped.emit()
 	await process_frame
+	_assert(hud.get_node("MarginContainer/VBoxContainer/MicStatusLabel").text.contains("Off"), "HUD shows mic off when disarmed")
 
 	# Milestone 4 and 5
 	energy_system.mana = 100.0

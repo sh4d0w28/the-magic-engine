@@ -15,6 +15,9 @@ signal input_submitted(text: String)
 @onready var _input_line: LineEdit = $MarginContainer/VBoxContainer/InputLine
 @onready var _aim_reticle: Control = $AimReticle
 
+var _mic_mode_enabled := false
+var _mic_is_listening := false
+
 
 func _ready() -> void:
 	_input_line.text_submitted.connect(_on_input_submitted)
@@ -46,7 +49,13 @@ func set_voice_power(voice_power: float) -> void:
 
 
 func set_mic_listening(is_listening: bool) -> void:
-	_mic_status_label.text = "Mic: %s" % ("Listening..." if is_listening else "Idle")
+	_mic_is_listening = is_listening
+	_update_mic_status_label()
+
+
+func set_mic_mode_enabled(is_enabled: bool) -> void:
+	_mic_mode_enabled = is_enabled
+	_update_mic_status_label()
 
 
 func set_mic_level(level: float) -> void:
@@ -99,3 +108,12 @@ func _update_aim_reticle() -> void:
 
 	var mouse_position: Vector2 = get_viewport().get_mouse_position()
 	_aim_reticle.position = mouse_position
+
+
+func _update_mic_status_label() -> void:
+	var state_text := "Off"
+	if _mic_is_listening:
+		state_text = "Listening..."
+	elif _mic_mode_enabled:
+		state_text = "Armed"
+	_mic_status_label.text = "Mic: %s" % state_text

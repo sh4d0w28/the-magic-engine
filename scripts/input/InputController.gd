@@ -7,6 +7,8 @@ extends Node
 @onready var _voice_incantation_recognizer: Node = $VoiceIncantationRecognizer
 @onready var _diagram_recognizer: Node = $DiagramRecognizer
 
+var _voice_mode_enabled := false
+
 
 func _ready() -> void:
 	_hud.input_submitted.connect(_on_input_submitted)
@@ -25,6 +27,7 @@ func _ready() -> void:
 func _initialize_ui_state() -> void:
 	_hud.set_status("Press Enter to type or M to speak an incantation.")
 	_debug_panel.set_message("Waiting for typed input.")
+	_hud.set_mic_mode_enabled(false)
 	_hud.set_mic_listening(false)
 	_hud.set_mic_level(0.0)
 	_on_voice_power_changed(_voice_power_tracker.get_voice_power())
@@ -37,13 +40,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_hud.open_input()
 			_hud.set_status("Typing incantation...")
 			_debug_panel.set_message("Input mode opened.")
+			if _voice_mode_enabled:
+				_set_voice_mode_enabled(false)
+				_debug_panel.set_message("Input mode opened. Voice mode disarmed.")
 			get_viewport().set_input_as_handled()
 		elif event.is_action_pressed("voice_incantation") and not _hud.is_input_open():
-			if _voice_incantation_recognizer.is_listening():
-				_hud.set_status("Voice recognizer is already listening.")
-				_debug_panel.set_message("Voice recognizer is already listening.")
-			else:
-				_voice_incantation_recognizer.start_listening()
+			_toggle_voice_mode()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_ESCAPE and _hud.is_input_open():
 			_hud.close_input()
@@ -109,11 +111,13 @@ func _on_voice_recognition_completed(result: Dictionary) -> void:
 	var raw_input: String = str(result.get("raw_text", ""))
 	var normalized_input: String = normalize_input(str(result.get("normalized_input", raw_input)))
 	_submit_incantation(raw_input, normalized_input, "voice", "Voice incantation recognized (conf %.2f)." % float(result.get("confidence", 0.0)))
+	_queue_voice_rearm_if_needed()
 
 
 func _on_voice_recognition_failed(message: String) -> void:
 	_hud.set_status("Voice recognition failed.")
 	_debug_panel.set_message(message)
+	_queue_voice_rearm_if_needed()
 
 
 func _submit_incantation(raw_input: String, normalized_input: String, input_type: String, debug_message: String) -> void:
@@ -129,3 +133,36 @@ func _submit_incantation(raw_input: String, normalized_input: String, input_type
 		_spell_manager.submit_voice_incantation(raw_input, normalized_input)
 	elif _spell_manager.has_method("submit_typed_incantation"):
 		_spell_manager.submit_typed_incantation(raw_input, normalized_input)
+
+
+func _toggle_voice_mode() -> void:
+	_set_voice_mode_enabled(not _voice_mode_enabled)
+	if _voice_mode_enabled:
+		_hud.set_status("Voice mode armed. Speak after each listen.")
+		_debug_panel.set_message("Voice mode armed.")
+		if not _voice_incantation_recognizer.is_listening():
+			_voice_incantation_recognizer.start_listening()
+	else:
+		if _voice_incantation_recognizer.is_listening():
+			_hud.set_status("Voice mode disarmed. Current listen will finish.")
+			_debug_panel.set_message("Voice mode disarmed. Current listen will finish.")
+		else:
+			_hud.set_status("Voice mode off.")
+			_debug_panel.set_message("Voice mode disarmed.")
+
+
+func _set_voice_mode_enabled(is_enabled: bool) -> void:
+	_voice_mode_enabled = is_enabled
+	_hud.set_mic_mode_enabled(is_enabled)
+	if not is_enabled:
+		_hud.set_mic_level(0.0)
+
+
+func _queue_voice_rearm_if_needed() -> void:
+	if _voice_mode_enabled:
+		call_deferred("_restart_voice_listening_if_armed")
+
+
+func _restart_voice_listening_if_armed() -> void:
+	if _voice_mode_enabled and not _hud.is_input_open() and not _voice_incantation_recognizer.is_listening():
+		_voice_incantation_recognizer.start_listening()

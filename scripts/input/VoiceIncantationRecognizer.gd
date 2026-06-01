@@ -14,6 +14,7 @@ const _MIC_BUS_NAME := "MicMonitor"
 
 var _worker_thread: Thread
 var _is_listening := false
+var _testing_mode := false
 var _mic_player: AudioStreamPlayer
 var _capture_effect: AudioEffectCapture
 
@@ -23,7 +24,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if _is_listening:
+	if _is_listening and not _testing_mode:
 		mic_level_changed.emit(_consume_mic_level())
 	if _worker_thread != null and _is_listening and not _worker_thread.is_alive():
 		var result: Dictionary = _worker_thread.wait_to_finish()
@@ -44,6 +45,8 @@ func start_listening() -> bool:
 	_is_listening = true
 	_start_mic_monitor()
 	listening_started.emit()
+	if _testing_mode:
+		return true
 	_worker_thread = Thread.new()
 	var start_error := _worker_thread.start(_run_recognition_job)
 	if start_error != OK:
@@ -59,7 +62,13 @@ func is_listening() -> bool:
 	return _is_listening
 
 
+func set_testing_mode(is_enabled: bool) -> void:
+	_testing_mode = is_enabled
+
+
 func simulate_recognition(raw_input: String, normalized_input: String, confidence: float = 1.0) -> void:
+	_is_listening = false
+	_stop_mic_monitor()
 	_emit_result({
 		"success": true,
 		"status": "recognized",
@@ -71,6 +80,8 @@ func simulate_recognition(raw_input: String, normalized_input: String, confidenc
 
 
 func simulate_failure(message: String) -> void:
+	_is_listening = false
+	_stop_mic_monitor()
 	_emit_result({
 		"success": false,
 		"status": "error",
